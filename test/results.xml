@@ -1,0 +1,6 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1787038394" />
+    <testcase name="test_project" classname="test" file="C:\Users\sunda\Downloads\new-fpga-verilog-test-mod1\new-fpga-verilog-test-mod1\test\test.py" lineno="9" time="0.0" sim_time_ns="100000.0" ratio_time="inf" />
+  </testsuite>
+</testsuites>
