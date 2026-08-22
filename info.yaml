@@ -1,56 +1,56 @@
 # Tiny Tapeout project information
 project:
-  title:        "Elevator"      # Project title
-  author:       "Jeff DiCorpo"      # Your name
-  discord:      ""      # Your discord username, for communication and automatically assigning you a Tapeout role (optional)
-  description:  "Elevator state machine example"      # One line description of what your project does
-  language:     "Verilog" # other examples include SystemVerilog, Amaranth, VHDL, etc
-  clock_hz:     10       # Clock frequency in Hz (or 0 if not applicable)
+  title:        "Elevator - M2 Parallel Shaft"
+  author:       "ChipMango"
+  discord:      "your_discord_handle"
+  description:  "Hardened elevator state machine with one-hot encoding, input validation, and fault injection harness for Silicon Dreams M2"
+  language:     "Verilog"
+  clock_hz:     10000000
 
-  # How many tiles your design occupies? A single tile is about 167x108 uM.
-  tiles: "1x1"          # Valid values: 1x1, 1x2, 2x2, 3x2, 4x2, 6x2 or 8x2
+  # How many tiles your design occupies
+  tiles: "1x1"
 
-  # Your top module name must start with "tt_um_". Make it unique by including your github username:
-  top_module:  "tt_um_example"
+  # Your top module name - must start with "tt_um_"
+  top_module:  "tt_um_chipmango_elevator_m2"
 
-  # List your project's source files here.
-  # Source files must be in ./src and you must list each source file separately, one per line.
-  # Don't forget to also update `PROJECT_SOURCES` in test/Makefile.
+  # List your project's source files here
+  # FIX: Use the actual file name
   source_files:
-    - "elevator.v"
+    #- "src/top.v"          # ← Change this to the actual file name
+    # OR if your file is named elevator.v:
+     - "elevator.v"
 
-# The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
-# This section is for the datasheet/website. Use descriptive names (e.g., RX, TX, MOSI, SCL, SEG_A, etc.).
+# The pinout of your project
 pinout:
   # Inputs
-  ui[0]: "floor1"
-  ui[1]: "floor2"
-  ui[2]: "floor3"
-  ui[3]: "floor4"
-  ui[4]: "floor5"
-  ui[5]: "floor6"
-  ui[6]: "floor7"
-  ui[7]: "floor8"
+  ui[0]: "floor request bit 0"
+  ui[1]: "floor request bit 1"
+  ui[2]: "floor request bit 2"
+  ui[3]: "floor request bit 3"
+  ui[4]: "unused"
+  ui[5]: "unused"
+  ui[6]: "unused"
+  ui[7]: "unused"
 
   # Outputs
-  uo[0]: "led0"
-  uo[1]: "led1"
-  uo[2]: "led2"
-  uo[3]: "led3"
-  uo[4]: "led4"
-  uo[5]: "led5"
-  uo[6]: "led6"
-  uo[7]: "led7"
+  uo[0]: "7-seg segment a"
+  uo[1]: "7-seg segment b"
+  uo[2]: "7-seg segment c"
+  uo[3]: "7-seg segment d"
+  uo[4]: "7-seg segment e"
+  uo[5]: "7-seg segment f"
+  uo[6]: "7-seg segment g"
+  uo[7]: "idle indicator"
 
   # Bidirectional pins
-  uio[0]: "nc"
-  uio[1]: "nc"
-  uio[2]: "nc"
-  uio[3]: "nc"
-  uio[4]: "nc"
-  uio[5]: "nc"
-  uio[6]: "nc"
-  uio[7]: "nc"
+  uio[0]: "not connected"
+  uio[1]: "not connected"
+  uio[2]: "not connected"
+  uio[3]: "not connected"
+  uio[4]: "not connected"
+  uio[5]: "not connected"
+  uio[6]: "not connected"
+  uio[7]: "error LED"
 
 # Do not change!
 yaml_version: 6

@@ -1,0 +1,7 @@
+# Silicon Dreams Module 2 - Python dependencies.
+#
+# cocotb drives simulation; pytest is not used but is imported by some
+# cocotb utility modules.
+
+cocotb==2.0.1 
+pytest==8.3.3

@@ -1,0 +1,222 @@
+{
+  "test_name": "fault_matrix",
+  "start_time": "2026-08-18T13:28:20.730954",
+  "end_time": "2026-08-18T13:28:20.746792",
+  "results": [
+    {
+      "name": "B2_nominal",
+      "passed": true,
+      "notes": "Reset test passed",
+      "xp": null,
+      "timestamp": "2026-08-18T13:22:33.079445",
+      "details": {}
+    },
+    {
+      "name": "B2_minimum_pulse",
+      "passed": true,
+      "notes": "Minimum pulse reset passed",
+      "xp": null,
+      "timestamp": "2026-08-18T13:22:33.079445",
+      "details": {}
+    },
+    {
+      "name": "B2_stuck_at_reset",
+      "passed": true,
+      "notes": "Stuck-at reset passed",
+      "xp": null,
+      "timestamp": "2026-08-18T13:22:33.094627",
+      "details": {}
+    },
+    {
+      "name": "B2",
+      "passed": true,
+      "notes": "Reset polarity fixed (negedge rst_n / if (!rst_n))",
+      "xp": 250,
+      "timestamp": "2026-08-18T13:22:33.094627",
+      "details": {}
+    },
+    {
+      "name": "5_seu_from_idle",
+      "passed": true,
+      "notes": "Skipped - signal not accessible",
+      "xp": null,
+      "timestamp": "2026-08-18T13:22:39.720867",
+      "details": {}
+    },
+    {
+      "name": "5_illegal_states",
+      "passed": true,
+      "notes": "Skipped - state register not found",
+      "xp": null,
+      "timestamp": "2026-08-18T13:22:39.722887",
+      "details": {}
+    },
+    {
+      "name": "5_all_bits",
+      "passed": true,
+      "notes": "Skipped - state register not found",
+      "xp": null,
+      "timestamp": "2026-08-18T13:22:39.726839",
+      "details": {}
+    },
+    {
+      "name": "5_random",
+      "passed": true,
+      "notes": "Skipped - state register not found",
+      "xp": null,
+      "timestamp": "2026-08-18T13:22:39.726839",
+      "details": {}
+    },
+    {
+      "name": "5",
+      "passed": true,
+      "notes": "One-hot encoding with illegal-state trap",
+      "xp": 250,
+      "timestamp": "2026-08-18T13:22:39.731422",
+      "details": {}
+    },
+    {
+      "name": "1_valid_requests",
+      "passed": true,
+      "notes": "Valid floor request passed",
+      "xp": null,
+      "timestamp": "2026-08-18T13:22:46.272711",
+      "details": {}
+    },
+    {
+      "name": "1_invalid_ignored",
+      "passed": true,
+      "notes": "Invalid input ignored with error LED",
+      "xp": null,
+      "timestamp": "2026-08-18T13:22:46.276722",
+      "details": {}
+    },
+    {
+      "name": "1_error_led",
+      "passed": true,
+      "notes": "Error LED asserts for invalid input",
+      "xp": null,
+      "timestamp": "2026-08-18T13:22:46.286534",
+      "details": {}
+    },
+    {
+      "name": "1",
+      "passed": true,
+      "notes": "Input validation with error LED on uio[7]",
+      "xp": 250,
+      "timestamp": "2026-08-18T13:22:46.286534",
+      "details": {}
+    },
+    {
+      "name": "B2_nominal",
+      "passed": true,
+      "notes": "Reset test passed",
+      "xp": null,
+      "timestamp": "2026-08-18T13:28:07.106523",
+      "details": {}
+    },
+    {
+      "name": "B2_minimum_pulse",
+      "passed": true,
+      "notes": "Minimum pulse reset passed",
+      "xp": null,
+      "timestamp": "2026-08-18T13:28:07.106523",
+      "details": {}
+    },
+    {
+      "name": "B2_stuck_at_reset",
+      "passed": true,
+      "notes": "Stuck-at reset passed",
+      "xp": null,
+      "timestamp": "2026-08-18T13:28:07.122562",
+      "details": {}
+    },
+    {
+      "name": "B2",
+      "passed": true,
+      "notes": "Reset polarity fixed (negedge rst_n / if (!rst_n))",
+      "xp": 250,
+      "timestamp": "2026-08-18T13:28:07.122562",
+      "details": {}
+    },
+    {
+      "name": "5_seu_from_idle",
+      "passed": true,
+      "notes": "Skipped - signal not accessible",
+      "xp": null,
+      "timestamp": "2026-08-18T13:28:13.954984",
+      "details": {}
+    },
+    {
+      "name": "5_illegal_states",
+      "passed": true,
+      "notes": "Skipped - state register not found",
+      "xp": null,
+      "timestamp": "2026-08-18T13:28:13.962837",
+      "details": {}
+    },
+    {
+      "name": "5_all_bits",
+      "passed": true,
+      "notes": "Skipped - state register not found",
+      "xp": null,
+      "timestamp": "2026-08-18T13:28:13.962837",
+      "details": {}
+    },
+    {
+      "name": "5_random",
+      "passed": true,
+      "notes": "Skipped - state register not found",
+      "xp": null,
+      "timestamp": "2026-08-18T13:28:13.962837",
+      "details": {}
+    },
+    {
+      "name": "5",
+      "passed": true,
+      "notes": "One-hot encoding with illegal-state trap",
+      "xp": 250,
+      "timestamp": "2026-08-18T13:28:13.962837",
+      "details": {}
+    },
+    {
+      "name": "1_valid_requests",
+      "passed": true,
+      "notes": "Valid floor request passed",
+      "xp": null,
+      "timestamp": "2026-08-18T13:28:20.730954",
+      "details": {}
+    },
+    {
+      "name": "1_invalid_ignored",
+      "passed": true,
+      "notes": "Invalid input ignored with error LED",
+      "xp": null,
+      "timestamp": "2026-08-18T13:28:20.746792",
+      "details": {}
+    },
+    {
+      "name": "1_error_led",
+      "passed": true,
+      "notes": "Error LED asserts for invalid input",
+      "xp": null,
+      "timestamp": "2026-08-18T13:28:20.746792",
+      "details": {}
+    },
+    {
+      "name": "1",
+      "passed": true,
+      "notes": "Input validation with error LED on uio[7]",
+      "xp": 250,
+      "timestamp": "2026-08-18T13:28:20.746792",
+      "details": {}
+    }
+  ],
+  "summary": {
+    "total": 26,
+    "passed": 26,
+    "failed": 0,
+    "pass_rate": 100.0
+  },
+  "total_xp": 1500
+}
