@@ -1,0 +1,135 @@
+make sim MODULE=test_top_smoke
+make[1]: Entering directory '/home/suni/Desktop/Silicon-Dreams-Ignite-Capstone/modules/module03/Modules/mod3.4/test/clock_gate'
+rm -f results.xml
+"make" -f Makefile results.xml
+make[2]: Entering directory '/home/suni/Desktop/Silicon-Dreams-Ignite-Capstone/modules/module03/Modules/mod3.4/test/clock_gate'
+/home/suni/.platformio/penv/lib/python3.8/site-packages/cocotb_tools/makefiles/simulators/Makefile.icarus:66: Using MODULE is deprecated, please use COCOTB_TEST_MODULES instead.
+rm -f results.xml
+COCOTB_TEST_MODULES=test_top_smoke COCOTB_TESTCASE= COCOTB_TEST_FILTER= COCOTB_TOPLEVEL=tt_um_silicon_dreams TOPLEVEL_LANG=verilog \
+         /usr/bin/vvp -M /home/suni/.platformio/penv/lib/python3.8/site-packages/cocotb/libs -m libcocotbvpi_icarus   sim_build/sim.vvp   
+     -.--ns INFO     gpi                                ..mbed/gpi_embed.cpp:93   in _embed_init_python              Using Python 3.8.19 interpreter at /home/suni/.platformio/penv/bin/python
+     -.--ns INFO     gpi                                ../gpi/GpiCommon.cpp:79   in gpi_print_registered_impl       VPI registered
+     0.00ns INFO     cocotb                             Running on Icarus Verilog version 10.3 (stable)
+     0.00ns WARNING  gpi                                vpi_iterate returned NULL for type vpiInstance for object NULL
+     0.00ns INFO     cocotb                             Seeding Python random module with 1783436879
+     0.00ns INFO     cocotb                             Initialized cocotb v2.0.1 from /home/suni/.platformio/penv/lib/python3.8/site-packages/cocotb
+     0.00ns INFO     cocotb.regression                  pytest not found, install it to enable better AssertionError messages
+     0.00ns INFO     cocotb                             Running tests
+     0.00ns INFO     cocotb.regression                  running test_top_smoke.test_top_smoke (1/1)
+                                                            Basic smoke test for top module
+    60.00ns INFO     cocotb.tt_um_silicon_dreams        === Top Module Smoke Test ===
+    80.00ns INFO     cocotb.tt_um_silicon_dreams        uo_out: 00000000
+    80.00ns INFO     cocotb.tt_um_silicon_dreams        uio_out: 00001000
+    80.00ns INFO     cocotb.tt_um_silicon_dreams        Sending request to floor 1...
+   190.00ns INFO     cocotb.tt_um_silicon_dreams        uo_out after request: 00000000
+   190.00ns INFO     cocotb.tt_um_silicon_dreams        uio_out after request: 00001000
+   190.00ns INFO     cocotb.tt_um_silicon_dreams        Sending request to floor 3...
+   300.00ns INFO     cocotb.tt_um_silicon_dreams         Smoke test passed!
+   300.00ns INFO     cocotb.regression                  test_top_smoke.test_top_smoke passed
+   300.00ns INFO     cocotb.regression                  ***************************************************************************************
+                                                        ** TEST                           STATUS  SIM TIME (ns)  REAL TIME (s)  RATIO (ns/s) **
+                                                        ***************************************************************************************
+                                                        ** test_top_smoke.test_top_smoke   PASS         300.00           0.00     113431.10  **
+                                                        ***************************************************************************************
+                                                        ** TESTS=1 PASS=1 FAIL=0 SKIP=0                 300.00           0.01      49876.77  **
+                                                        ***************************************************************************************
+/home/suni/.platformio/penv/lib/python3.8/site-packages/cocotb/__init__.py:124: FutureWarning: Support for Python versions < 3.9 will be dropped in version 2.1
+  warnings.warn(
+make[2]: Leaving directory '/home/suni/Desktop/Silicon-Dreams-Ignite-Capstone/modules/module03/Modules/mod3.4/test/clock_gate'
+make[1]: Leaving directory '/home/suni/Desktop/Silicon-Dreams-Ignite-Capstone/modules/module03/Modules/mod3.4/test/clock_gate'
+make sim MODULE=test_clock_gate
+make[1]: Entering directory '/home/suni/Desktop/Silicon-Dreams-Ignite-Capstone/modules/module03/Modules/mod3.4/test/clock_gate'
+rm -f results.xml
+"make" -f Makefile results.xml
+make[2]: Entering directory '/home/suni/Desktop/Silicon-Dreams-Ignite-Capstone/modules/module03/Modules/mod3.4/test/clock_gate'
+/home/suni/.platformio/penv/lib/python3.8/site-packages/cocotb_tools/makefiles/simulators/Makefile.icarus:66: Using MODULE is deprecated, please use COCOTB_TEST_MODULES instead.
+rm -f results.xml
+COCOTB_TEST_MODULES=test_clock_gate COCOTB_TESTCASE= COCOTB_TEST_FILTER= COCOTB_TOPLEVEL=tt_um_silicon_dreams TOPLEVEL_LANG=verilog \
+         /usr/bin/vvp -M /home/suni/.platformio/penv/lib/python3.8/site-packages/cocotb/libs -m libcocotbvpi_icarus   sim_build/sim.vvp   
+     -.--ns INFO     gpi                                ..mbed/gpi_embed.cpp:93   in _embed_init_python              Using Python 3.8.19 interpreter at /home/suni/.platformio/penv/bin/python
+     -.--ns INFO     gpi                                ../gpi/GpiCommon.cpp:79   in gpi_print_registered_impl       VPI registered
+     0.00ns INFO     cocotb                             Running on Icarus Verilog version 10.3 (stable)
+     0.00ns WARNING  gpi                                vpi_iterate returned NULL for type vpiInstance for object NULL
+     0.00ns INFO     cocotb                             Seeding Python random module with 1783436879
+     0.00ns INFO     cocotb                             Initialized cocotb v2.0.1 from /home/suni/.platformio/penv/lib/python3.8/site-packages/cocotb
+     0.00ns INFO     cocotb.regression                  pytest not found, install it to enable better AssertionError messages
+     0.00ns INFO     cocotb                             Running tests
+     0.00ns INFO     cocotb.regression                  running test_clock_gate.test_clock_gate_basic (1/2)
+                                                            Test basic clock gating functionality on full top module
+   110.00ns INFO     cocotb.tt_um_silicon_dreams        === Clock Gating Test on Full Design ===
+   110.00ns INFO     cocotb.tt_um_silicon_dreams        Test 1: Checking IDLE state...
+   130.00ns INFO     cocotb.tt_um_silicon_dreams        Clock gate enable: 0
+   130.00ns INFO     cocotb.tt_um_silicon_dreams        Clock gate active: 1
+   130.00ns INFO     cocotb.tt_um_silicon_dreams        Test 2: Enabling test mode...
+   160.00ns INFO     cocotb.tt_um_silicon_dreams        Clock gate enable (test mode): 1
+   160.00ns INFO     cocotb.tt_um_silicon_dreams        Test 3: Sending elevator request...
+   220.00ns INFO     cocotb.tt_um_silicon_dreams        Clock gate enable (with request): 0
+   220.00ns INFO     cocotb.tt_um_silicon_dreams        Test 4: Waiting for idle...
+   420.00ns INFO     cocotb.tt_um_silicon_dreams        Clock gate enable (returned to idle): 0
+   420.00ns INFO     cocotb.tt_um_silicon_dreams         All clock gating tests passed!
+   420.00ns INFO     cocotb.regression                  test_clock_gate.test_clock_gate_basic passed
+   420.00ns INFO     cocotb.regression                  running test_clock_gate.test_clock_gate_power_saving (2/2)
+                                                            Verify power saving when clock is gated
+   480.00ns INFO     cocotb.tt_um_silicon_dreams        === Power Saving Test ===
+   580.00ns INFO     cocotb.tt_um_silicon_dreams        Counting clock toggles in idle state...
+  1080.00ns INFO     cocotb.tt_um_silicon_dreams        Clock toggles when idle: 0/50
+  1080.00ns INFO     cocotb.tt_um_silicon_dreams        Sending request...
+  1140.00ns INFO     cocotb.tt_um_silicon_dreams        Counting clock toggles in active state...
+  1640.00ns INFO     cocotb.tt_um_silicon_dreams        Clock toggles when active: 0/50
+  1640.00ns WARNING  cocotb.tt_um_silicon_dreams         No significant power saving observed
+  1640.00ns INFO     cocotb.tt_um_silicon_dreams        Check that elevator enters IDLE state
+  1640.00ns INFO     cocotb.regression                  test_clock_gate.test_clock_gate_power_saving passed
+  1640.00ns INFO     cocotb.regression                  ******************************************************************************************************
+                                                        ** TEST                                          STATUS  SIM TIME (ns)  REAL TIME (s)  RATIO (ns/s) **
+                                                        ******************************************************************************************************
+                                                        ** test_clock_gate.test_clock_gate_basic          PASS         420.00           0.00     148671.42  **
+                                                        ** test_clock_gate.test_clock_gate_power_saving   PASS        1220.00           0.01     190140.12  **
+                                                        ******************************************************************************************************
+                                                        ** TESTS=2 PASS=2 FAIL=0 SKIP=0                               1640.00           0.02     105763.75  **
+                                                        ******************************************************************************************************
+/home/suni/.platformio/penv/lib/python3.8/site-packages/cocotb/__init__.py:124: FutureWarning: Support for Python versions < 3.9 will be dropped in version 2.1
+  warnings.warn(
+make[2]: Leaving directory '/home/suni/Desktop/Silicon-Dreams-Ignite-Capstone/modules/module03/Modules/mod3.4/test/clock_gate'
+make[1]: Leaving directory '/home/suni/Desktop/Silicon-Dreams-Ignite-Capstone/modules/module03/Modules/mod3.4/test/clock_gate'
+make sim MODULE=test_clock_gate_stuck
+make[1]: Entering directory '/home/suni/Desktop/Silicon-Dreams-Ignite-Capstone/modules/module03/Modules/mod3.4/test/clock_gate'
+rm -f results.xml
+"make" -f Makefile results.xml
+make[2]: Entering directory '/home/suni/Desktop/Silicon-Dreams-Ignite-Capstone/modules/module03/Modules/mod3.4/test/clock_gate'
+/home/suni/.platformio/penv/lib/python3.8/site-packages/cocotb_tools/makefiles/simulators/Makefile.icarus:66: Using MODULE is deprecated, please use COCOTB_TEST_MODULES instead.
+rm -f results.xml
+COCOTB_TEST_MODULES=test_clock_gate_stuck COCOTB_TESTCASE= COCOTB_TEST_FILTER= COCOTB_TOPLEVEL=tt_um_silicon_dreams TOPLEVEL_LANG=verilog \
+         /usr/bin/vvp -M /home/suni/.platformio/penv/lib/python3.8/site-packages/cocotb/libs -m libcocotbvpi_icarus   sim_build/sim.vvp   
+     -.--ns INFO     gpi                                ..mbed/gpi_embed.cpp:93   in _embed_init_python              Using Python 3.8.19 interpreter at /home/suni/.platformio/penv/bin/python
+     -.--ns INFO     gpi                                ../gpi/GpiCommon.cpp:79   in gpi_print_registered_impl       VPI registered
+     0.00ns INFO     cocotb                             Running on Icarus Verilog version 10.3 (stable)
+     0.00ns WARNING  gpi                                vpi_iterate returned NULL for type vpiInstance for object NULL
+     0.00ns INFO     cocotb                             Seeding Python random module with 1783436880
+     0.00ns INFO     cocotb                             Initialized cocotb v2.0.1 from /home/suni/.platformio/penv/lib/python3.8/site-packages/cocotb
+     0.00ns INFO     cocotb.regression                  pytest not found, install it to enable better AssertionError messages
+     0.00ns INFO     cocotb                             Running tests
+     0.00ns INFO     cocotb.regression                  running test_clock_gate_stuck.test_clock_gate_stuck (1/1)
+                                                            Test stuck-at fault on enable signal
+   110.00ns INFO     cocotb.tt_um_silicon_dreams        === Stuck-at Fault Test ===
+   110.00ns INFO     cocotb.tt_um_silicon_dreams        Initial clock gate active: 1
+   110.00ns INFO     cocotb.tt_um_silicon_dreams        Injecting stuck-at-0 fault on enable
+   160.00ns INFO     cocotb.tt_um_silicon_dreams        Clock gate active after fault: 1
+   160.00ns INFO     cocotb.tt_um_silicon_dreams        Sending request with stuck fault...
+   270.00ns INFO     cocotb.tt_um_silicon_dreams        Gated clock value during fault: 0
+   270.00ns INFO     cocotb.tt_um_silicon_dreams        Releasing stuck-at-0 fault
+   320.00ns INFO     cocotb.tt_um_silicon_dreams        Clock gate active after release: 0
+   320.00ns INFO     cocotb.tt_um_silicon_dreams        Sending request after fault release...
+   430.00ns INFO     cocotb.tt_um_silicon_dreams        Gated clock value after recovery: 0
+   430.00ns INFO     cocotb.tt_um_silicon_dreams         Stuck-at fault test passed!
+   430.00ns INFO     cocotb.regression                  test_clock_gate_stuck.test_clock_gate_stuck passed
+   430.00ns INFO     cocotb.regression                  *****************************************************************************************************
+                                                        ** TEST                                         STATUS  SIM TIME (ns)  REAL TIME (s)  RATIO (ns/s) **
+                                                        *****************************************************************************************************
+                                                        ** test_clock_gate_stuck.test_clock_gate_stuck   PASS         430.00           0.00     125551.74  **
+                                                        *****************************************************************************************************
+                                                        ** TESTS=1 PASS=1 FAIL=0 SKIP=0                               430.00           0.01      51965.04  **
+                                                        *****************************************************************************************************
+/home/suni/.platformio/penv/lib/python3.8/site-packages/cocotb/__init__.py:124: FutureWarning: Support for Python versions < 3.9 will be dropped in version 2.1
+  warnings.warn(
+make[2]: Leaving directory '/home/suni/Desktop/Silicon-Dreams-Ignite-Capstone/modules/module03/Modules/mod3.4/test/clock_gate'
+make[1]: Leaving directory '/home/suni/Desktop/Silicon-Dreams-Ignite-Capstone/modules/module03/Modules/mod3.4/test/clock_gate'

@@ -1,0 +1,7 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1784658663" />
+    <testcase name="test_clock_gate_basic" classname="test_clock_gate" file="/home/suni/Desktop/Silicon-Dreams-Ignite-Capstone/mod3/test/clock_gate/test_clock_gate.py" lineno="6" time="0.003468751907348633" sim_time_ns="420.0" ratio_time="121081.01450271497" />
+    <testcase name="test_clock_gate_power_saving" classname="test_clock_gate" file="/home/suni/Desktop/Silicon-Dreams-Ignite-Capstone/mod3/test/clock_gate/test_clock_gate.py" lineno="85" time="0.008333206176757812" sim_time_ns="1220.0" ratio_time="146402.23392080568" />
+  </testsuite>
+</testsuites>

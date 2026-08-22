@@ -1,0 +1,11 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1785926026" />
+    <testcase name="test_floor_up_from_reset" classname="test" file="C:\Users\sunda\Downloads\Silicon-Dreams-Ignite-Capstone-mod\Silicon-Dreams-Ignite-Capstone\test\test.py" lineno="28" time="0.04070591926574707" sim_time_ns="630.0" ratio_time="15476.864578025337" />
+    <testcase name="test_floor_down_from_top" classname="test" file="C:\Users\sunda\Downloads\Silicon-Dreams-Ignite-Capstone-mod\Silicon-Dreams-Ignite-Capstone\test\test.py" lineno="71" time="0.0" sim_time_ns="2640.0" ratio_time="inf" />
+    <testcase name="test_illegal_input" classname="test" file="C:\Users\sunda\Downloads\Silicon-Dreams-Ignite-Capstone-mod\Silicon-Dreams-Ignite-Capstone\test\test.py" lineno="121" time="0.0" sim_time_ns="860.0000000000005" ratio_time="inf" />
+    <testcase name="test_invalid_input_should_not_map_to_floor_zero" classname="test" file="C:\Users\sunda\Downloads\Silicon-Dreams-Ignite-Capstone-mod\Silicon-Dreams-Ignite-Capstone\test\test.py" lineno="149" time="0.0" sim_time_ns="70.0" ratio_time="inf">
+      <failure error_type="AssertionError" error_msg="Illegal input incorrectly maps to floor 0 (design bug)" />
+    </testcase>
+  </testsuite>
+</testsuites>

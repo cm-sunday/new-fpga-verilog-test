@@ -1,56 +1,77 @@
 # Tiny Tapeout project information
 project:
-  title:        "Elevator"      # Project title
-  author:       "Jeff DiCorpo"      # Your name
-  discord:      ""      # Your discord username, for communication and automatically assigning you a Tapeout role (optional)
-  description:  "Elevator state machine example"      # One line description of what your project does
-  language:     "Verilog" # other examples include SystemVerilog, Amaranth, VHDL, etc
-  clock_hz:     10       # Clock frequency in Hz (or 0 if not applicable)
+  title:        "Silicon Dreams M3"  # ← Shortened to 17 chars
+  author:       "ChipMango"
+  discord:      "@chipmango"
+  description:  "Multi-block elevator system with round-robin arbiter, clock gating, and AXIOM shim for ChipFoundry chipIgnite 2026-Q2 shuttle. CM-HW-101 Silicon Dreams - Module 3 Final Integration."
+  language:     "Verilog"
+  clock_hz:     12000000  # ← Changed to 12 MHz (below 60 MHz limit)
 
-  # How many tiles your design occupies? A single tile is about 167x108 uM.
-  tiles: "1x1"          # Valid values: 1x1, 1x2, 2x2, 3x2, 4x2, 6x2 or 8x2
+  # How many tiles your design occupies
+  tiles: "1x2"
 
-  # Your top module name must start with "tt_um_". Make it unique by including your github username:
-  top_module:  "tt_um_example"
+  # Your top module name - must start with "tt_um_"
+  top_module:  "tt_um_silicon_dreams"
 
-  # List your project's source files here.
-  # Source files must be in ./src and you must list each source file separately, one per line.
-  # Don't forget to also update `PROJECT_SOURCES` in test/Makefile.
+  # List your project's source files here
   source_files:
+    - "top.v"
     - "elevator.v"
+    - "elevator_req_port.v"
+    - "arbiter.v"
+    - "clock_gate.v"
+    - "axiom_shim.v"
+    - "reset_synchroniser.v"
+    - "axiom_blackbox.v"
 
-# The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
-# This section is for the datasheet/website. Use descriptive names (e.g., RX, TX, MOSI, SCL, SEG_A, etc.).
+# The pinout of your project
 pinout:
   # Inputs
-  ui[0]: "floor1"
-  ui[1]: "floor2"
-  ui[2]: "floor3"
-  ui[3]: "floor4"
-  ui[4]: "floor5"
-  ui[5]: "floor6"
-  ui[6]: "floor7"
-  ui[7]: "floor8"
+  ui[0]: "request_strobe"
+  ui[1]: "requested_floor[0]"
+  ui[2]: "requested_floor[1]"
+  ui[3]: "requested_floor[2]"
+  ui[4]: "requested_floor[3]"
+  ui[5]: "priority_override_req"
+  ui[6]: "axiom_enable"
+  ui[7]: "debug_probe_select"
 
   # Outputs
-  uo[0]: "led0"
-  uo[1]: "led1"
-  uo[2]: "led2"
-  uo[3]: "led3"
-  uo[4]: "led4"
-  uo[5]: "led5"
-  uo[6]: "led6"
-  uo[7]: "led7"
+  uo[0]: "current_floor[0]"
+  uo[1]: "current_floor[1]"
+  uo[2]: "current_floor[2]"
+  uo[3]: "current_floor[3]"
+  uo[4]: "state[0]"
+  uo[5]: "state[1]"
+  uo[6]: "state[2]"
+  uo[7]: "door_open"
 
   # Bidirectional pins
-  uio[0]: "nc"
-  uio[1]: "nc"
-  uio[2]: "nc"
-  uio[3]: "nc"
-  uio[4]: "nc"
-  uio[5]: "nc"
-  uio[6]: "nc"
-  uio[7]: "nc"
+  uio[0]: "fault_inject_enable"
+  uio[1]: "arbiter_grant_elevator"
+  uio[2]: "arbiter_grant_axiom"
+  uio[3]: "clock_gate_active"
+  uio[4]: "axiom_misbehaviour_led"
+  uio[5]: "reserved"
+  uio[6]: "reserved"
+  uio[7]: "error_led"
 
 # Do not change!
 yaml_version: 6
+
+# Flow configuration
+flow:
+  tool:    "librelane"
+  version: "2025.04"
+  pdk:     "sky130A"
+  scl:     "sky130_fd_sc_hd"
+  die_area_um:
+    width:  161
+    height: 225
+
+# Course information
+course:
+  code:        "CM-HW-101"
+  module:      "M3"
+  cohort:      "2026-spring"
+  partners:    ["ChipMango", "ChipFoundry"]

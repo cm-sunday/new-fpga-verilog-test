@@ -1,0 +1,23 @@
+==========================================
+POWER REPORT - Tue 07 Jul 2026 07:44:23 AM PDT
+==========================================
+
+Run: run-20260707-073855
+
+Post-ICG Power (With Clock Gating):
+  Total Power:     0.8521 mW
+  Switching Power: 0.2481 mW
+  Internal Power:  0.6039 mW
+  Leakage Power:   0.0000 mW
+
+Power Savings:
+  Dynamic: 1.20 mW -> 0.2481 mW = 79.3% reduction
+  Total:   1.30 mW -> 0.8521 mW = 34.5% reduction
+  Improvement: 1.53x
+
+Lab Expected:
+  Dynamic: 1.20 mW -> 0.15 mW (87.5% reduction)
+  Total:   1.30 mW -> 0.25 mW (80.8% reduction)
+  Improvement: 4.0x
+
+Status:  Clock gating verified

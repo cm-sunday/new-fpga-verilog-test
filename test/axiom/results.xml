@@ -1,0 +1,13 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1784658640" />
+    <testcase name="test_resp_ff_clamped" classname="test_shim" file="/home/suni/Desktop/Silicon-Dreams-Ignite-Capstone/mod3/test/axiom/test_shim.py" lineno="27" time="0.001361846923828125" sim_time_ns="130.0" ratio_time="95458.5994397759" />
+    <testcase name="test_shim_basic_functionality" classname="test_shim" file="/home/suni/Desktop/Silicon-Dreams-Ignite-Capstone/mod3/test/axiom/test_shim.py" lineno="57" time="0.0006959438323974609" sim_time_ns="80.0" ratio_time="114951.80541281261" />
+    <testcase name="test_shim_reset" classname="test_shim" file="/home/suni/Desktop/Silicon-Dreams-Ignite-Capstone/mod3/test/axiom/test_shim.py" lineno="81" time="0.0004036426544189453" sim_time_ns="30.0" ratio_time="74323.16597755464" />
+    <testcase name="test_granted_control" classname="test_shim" file="/home/suni/Desktop/Silicon-Dreams-Ignite-Capstone/mod3/test/axiom/test_shim.py" lineno="104" time="0.0011763572692871094" sim_time_ns="180.0" ratio_time="153014.73854884476" />
+    <testcase name="test_output_clamping" classname="test_shim" file="/home/suni/Desktop/Silicon-Dreams-Ignite-Capstone/mod3/test/axiom/test_shim.py" lineno="135" time="0.0010223388671875" sim_time_ns="130.0" ratio_time="127159.40298507463" />
+    <testcase name="test_axiom_reset_control" classname="test_shim" file="/home/suni/Desktop/Silicon-Dreams-Ignite-Capstone/mod3/test/axiom/test_shim.py" lineno="160" time="0.0014033317565917969" sim_time_ns="230.0" ratio_time="163895.67108392797" />
+    <testcase name="test_easter_egg_clamped" classname="test_shim" file="/home/suni/Desktop/Silicon-Dreams-Ignite-Capstone/mod3/test/axiom/test_shim.py" lineno="195" time="0.001302957534790039" sim_time_ns="100.0" ratio_time="76748.47209515097" />
+    <testcase name="test_interface_validation" classname="test_shim" file="/home/suni/Desktop/Silicon-Dreams-Ignite-Capstone/mod3/test/axiom/test_shim.py" lineno="229" time="0.0004508495330810547" sim_time_ns="30.0" ratio_time="66541.04706504496" />
+  </testsuite>
+</testsuites>

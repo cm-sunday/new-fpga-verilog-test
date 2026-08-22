@@ -1,0 +1,7 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1784658222" />
+    <testcase name="test_priority_does_not_starve_elevator" classname="test_fairness" file="/home/suni/Desktop/Silicon-Dreams-Ignite-Capstone/mod3/test/arbiter/test_fairness.py" lineno="26" time="0.0639791488647461" sim_time_ns="10150.0" ratio_time="158645.43652272422" />
+    <testcase name="test_round_robin_works" classname="test_fairness" file="/home/suni/Desktop/Silicon-Dreams-Ignite-Capstone/mod3/test/arbiter/test_fairness.py" lineno="73" time="0.0060100555419921875" sim_time_ns="1160.0" ratio_time="193009.86353538558" />
+  </testsuite>
+</testsuites>
