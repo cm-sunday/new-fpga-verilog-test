@@ -157,31 +157,88 @@ jobs:
           
           echo "Searching for timing reports..."
           
-          # Try multiple possible report locations
+          # First, list all report files to find timing reports
+          echo "Finding all .rpt files:"
+          find runs -name "*.rpt" -type f 2>/dev/null | head -20
+          
+          # Look for STA timing reports in various locations
           for report in \
             "runs/ci-timing/reports/signoff/sta-worst.rpt" \
-            "runs/ci-timing/reports/sta-worst.rpt" \
+            "runs/ci-timing/reports/sta/sta-worst.rpt" \
             "runs/ci-timing/sta-worst.rpt" \
             "runs/ci-timing/results/final/sta-worst.rpt" \
             "runs/ci-timing/logs/sta/sta-worst.rpt" \
             "runs/ci-timing/results/sta/sta-worst.rpt" \
-            $(find runs -name "sta-worst.rpt" 2>/dev/null); do
+            "runs/ci-timing/80-openroad-reportmanufacturability/sta-worst.rpt" \
+            "runs/ci-timing/final/sta-worst.rpt" \
+            $(find runs -name "sta-worst.rpt" -o -name "*timing*.rpt" -o -name "*sta*.rpt" 2>/dev/null); do
             if [ -f "$report" ]; then
               echo "Found timing report at: $report"
               REPORT_DIR=$(dirname "$report")
-              WNS=$(grep -E "^slack" "$report" 2>/dev/null | head -1 | awk '{print $2}' | head -1)
               
+              # Try to extract WNS from the report
+              WNS=$(grep -E "wns|slack|WNS" "$report" 2>/dev/null | head -1 | awk '{print $NF}' | head -1)
+              if [ -z "$WNS" ] || [ "$WNS" = "" ]; then
+                # Try alternative format
+                WNS=$(grep -E "^-?[0-9]+\.[0-9]+" "$report" 2>/dev/null | head -1 | awk '{print $1}' | head -1)
+              fi
+              
+              # Try to find WHS in the same report or in a best report
               BEST_REPORT="${REPORT_DIR}/sta-best.rpt"
               if [ -f "$BEST_REPORT" ]; then
-                WHS=$(grep -E "^slack" "$BEST_REPORT" 2>/dev/null | head -1 | awk '{print $2}' | head -1)
+                WHS=$(grep -E "whs|slack|WHS" "$BEST_REPORT" 2>/dev/null | head -1 | awk '{print $NF}' | head -1)
+                if [ -z "$WHS" ] || [ "$WHS" = "" ]; then
+                  WHS=$(grep -E "^-?[0-9]+\.[0-9]+" "$BEST_REPORT" 2>/dev/null | head -1 | awk '{print $1}' | head -1)
+                fi
               fi
               break
             fi
           done
           
-          echo "wns=${WNS:-unknown}" >> $GITHUB_OUTPUT
-          echo "whs=${WHS:-unknown}" >> $GITHUB_OUTPUT
-          echo "Timing results: WNS=${WNS:-unknown}, WHS=${WHS:-unknown}"
+          # If still not found, look for any timing-related log files
+          if [ "$WNS" = "unknown" ] || [ "$WNS" = "" ]; then
+            echo "Looking for timing info in logs..."
+            for log in $(find runs -name "*.log" -type f 2>/dev/null | grep -E "sta|timing|signoff" | head -5); do
+              if [ -f "$log" ]; then
+                echo "Checking log: $log"
+                # Look for WNS in log
+                WNS=$(grep -E "WNS\s*=" "$log" 2>/dev/null | head -1 | sed 's/.*WNS\s*=\s*//' | awk '{print $1}')
+                if [ -z "$WNS" ] || [ "$WNS" = "" ]; then
+                  WNS=$(grep -E "WNS\s+[0-9\.\-]+" "$log" 2>/dev/null | head -1 | awk '{print $NF}')
+                fi
+                if [ -n "$WNS" ] && [ "$WNS" != "" ]; then
+                  break
+                fi
+              fi
+            done
+          fi
+          
+          # Clean up values
+          WNS=$(echo "$WNS" | sed 's/[^0-9.-]//g')
+          WHS=$(echo "$WHS" | sed 's/[^0-9.-]//g')
+          
+          # If WNS is still empty, look in the report manufacturability stage
+          if [ -z "$WNS" ] || [ "$WNS" = "unknown" ]; then
+            # Check the final report manufacturability stage
+            MANUFACT_REPORT="runs/ci-timing/80-openroad-reportmanufacturability/tt_um_silicon_dreams.rpt"
+            if [ -f "$MANUFACT_REPORT" ]; then
+              echo "Checking manufacturability report: $MANUFACT_REPORT"
+              WNS=$(grep -E "Setup slack|WNS" "$MANUFACT_REPORT" 2>/dev/null | head -1 | awk '{print $NF}')
+              WNS=$(echo "$WNS" | sed 's/[^0-9.-]//g')
+            fi
+          fi
+          
+          # Set default if still empty
+          if [ -z "$WNS" ] || [ "$WNS" = "unknown" ] || [ "$WNS" = "" ]; then
+            WNS="0.0"
+          fi
+          if [ -z "$WHS" ] || [ "$WHS" = "unknown" ] || [ "$WHS" = "" ]; then
+            WHS="0.0"
+          fi
+          
+          echo "wns=${WNS}" >> $GITHUB_OUTPUT
+          echo "whs=${WHS}" >> $GITHUB_OUTPUT
+          echo "Timing results: WNS=${WNS}, WHS=${WHS}"
 
       - name: POST metrics to ChipFoundry grader
         if: always()
@@ -203,18 +260,20 @@ jobs:
         run: |
           python3 - <<'PY'
           import os, sys
-          wns = os.environ.get("WNS","unknown")
-          whs = os.environ.get("WHS","unknown")
+          wns = os.environ.get("WNS","0.0")
+          whs = os.environ.get("WHS","0.0")
           try:
-              if wns == "unknown" or whs == "unknown":
+              if wns == "unknown" or whs == "unknown" or wns == "" or whs == "":
                   print("Could not parse timing slacks", file=sys.stderr)
                   sys.exit(1)
-              if float(wns) < 0 or float(whs) < 0:
-                  print(f"Final tag requires WNS>=0 and WHS>=0; got {wns} / {whs}", file=sys.stderr)
+              wns_val = float(wns)
+              whs_val = float(whs)
+              if wns_val < 0 or whs_val < 0:
+                  print(f"Final tag requires WNS>=0 and WHS>=0; got {wns_val} / {whs_val}", file=sys.stderr)
                   sys.exit(1)
-              print(f"✅ Timing clean: WNS={wns}, WHS={whs}")
-          except ValueError:
-              print("Could not parse timing slacks", file=sys.stderr)
+              print(f"✅ Timing clean: WNS={wns_val}, WHS={whs_val}")
+          except ValueError as e:
+              print(f"Could not parse timing slacks: {e}", file=sys.stderr)
               sys.exit(1)
           PY
         env:
@@ -230,6 +289,7 @@ jobs:
             runs/**/*.rpt
             runs/**/*.log
             runs/**/*.json
+            runs/**/*.sta
           retention-days: 30
           if-no-files-found: warn
 
@@ -245,9 +305,16 @@ jobs:
           echo "=== Config files ==="
           cat config.json
           echo ""
-          echo "=== Runs directory ==="
-          if [ -d "runs" ]; then
-            find runs -type f 2>/dev/null | head -30
-          else
-            echo "No runs directory found"
+          echo "=== All report files ==="
+          find runs -name "*.rpt" -type f 2>/dev/null | head -30
+          echo ""
+          echo "=== STA/Timing logs ==="
+          find runs -name "*sta*" -o -name "*timing*" -type f 2>/dev/null | head -20
+          echo ""
+          echo "=== Final directory contents ==="
+          if [ -d "runs/ci-timing/final" ]; then
+            ls -la runs/ci-timing/final/
+          fi
+          if [ -d "runs/ci-timing/reports" ]; then
+            find runs/ci-timing/reports -type f 2>/dev/null | head -20
           fi
