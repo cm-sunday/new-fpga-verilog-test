@@ -1,167 +1,133 @@
 // =============================================================================
-// Silicon Dreams · Module 3 · top.v
+// elevator.v - Hardened elevator controller from Module 2
 // =============================================================================
 `default_nettype none
 
-module tt_um_silicon_dreams (
-  input  wire [7:0] ui_in,
-  output wire [7:0] uo_out,
-  input  wire [7:0] uio_in,
-  output wire [7:0] uio_out,
-  output wire [7:0] uio_oe,
-  input  wire       ena,
-  input  wire       clk,
-  input  wire       rst_n
+module elevator (
+    input  wire       clk,
+    input  wire       rst_n,
+    input  wire       request_strobe,
+    input  wire [3:0] requested_floor,
+    input  wire       fault_inject_en,
+    output wire [3:0] current_floor,
+    output wire [2:0] state,
+    output wire       door_open,
+    output wire       error_led
 );
 
-  // ---------------------------------------------------------------------------
-  // Reset-domain partitioning
-  // ---------------------------------------------------------------------------
-  wire elevator_rst_n;
-  wire arbiter_rst_n;
-  wire axiom_rst_n_sync;
-  wire axiom_rst;
+    // States - binary encoding (IDLE = 0 for test compatibility)
+    localparam IDLE      = 3'b000;
+    localparam MOVING_UP = 3'b001;
+    localparam MOVING_DN = 3'b010;
+    // FIX: Removed unused parameter DOOR_OPEN
 
-  reset_synchroniser #(.HOLD_CYCLES(4)) u_rst_elev (
-    .clk        (clk),
-    .rst_n      (rst_n),
-    .rst_n_sync (elevator_rst_n)
-  );
-  
-  reset_synchroniser #(.HOLD_CYCLES(6)) u_rst_arb (
-    .clk        (clk),
-    .rst_n      (rst_n),
-    .rst_n_sync (arbiter_rst_n)
-  );
-  
-  reset_synchroniser #(.HOLD_CYCLES(4)) u_rst_axm (
-    .clk        (clk),
-    .rst_n      (rst_n),
-    .rst_n_sync (axiom_rst_n_sync)
-  );
-  
-  assign axiom_rst = ~axiom_rst_n_sync;
+    reg [2:0] current_state, next_state;
+    reg [3:0] floor_reg;
+    reg [3:0] target_floor;
+    reg [3:0] delay_counter;
+    reg       door_open_reg;
+    reg       error_led_reg;
+    reg       door_opened;          // Track if door has been opened
 
-  // ---------------------------------------------------------------------------
-  // Input decoding
-  // ---------------------------------------------------------------------------
-  wire       request_strobe       = ui_in[0];
-  wire [3:0] requested_floor      = ui_in[4:1];
-  wire       priority_override    = ui_in[5];
-  wire       axiom_enable         = ui_in[6];
-  wire       fault_inject_enable  = uio_in[0];
-  wire       global_test_mode     = ui_in[7];
+    // FIX: Remove redundant >= 4'd0 check (unsigned can't be negative)
+    wire request_valid = (requested_floor <= 4'd8);
 
-  // ---------------------------------------------------------------------------
-  // Elevator
-  // ---------------------------------------------------------------------------
-  wire [3:0] current_floor;
-  wire [2:0] elevator_state;
-  wire       door_open;
-  wire       elevator_error_led;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            current_state <= IDLE;
+            floor_reg <= 4'd0;
+            target_floor <= 4'd0;
+            delay_counter <= 4'd0;
+            door_open_reg <= 1'b0;
+            error_led_reg <= 1'b0;
+            door_opened <= 1'b0;     // Door not opened yet
+        end else begin
+            current_state <= next_state;
+            
+            // Move floor with delay
+            if (current_state == MOVING_UP) begin
+                if (delay_counter == 4'd1) begin
+                    delay_counter <= 4'd0;
+                    if (floor_reg < target_floor)
+                        floor_reg <= floor_reg + 1'b1;
+                end else begin
+                    delay_counter <= delay_counter + 1'b1;
+                end
+            end else if (current_state == MOVING_DN) begin
+                if (delay_counter == 4'd1) begin
+                    delay_counter <= 4'd0;
+                    if (floor_reg > target_floor)
+                        floor_reg <= floor_reg - 1'b1;
+                end else begin
+                    delay_counter <= delay_counter + 1'b1;
+                end
+            end else begin
+                delay_counter <= 4'd0;
+            end
 
-  wire [3:0] req_payload;
-  wire       req_valid;
-  wire       req_ready;
+            // Latch valid request
+            if (request_strobe && request_valid) begin
+                target_floor <= requested_floor;
+            end
 
-  // ---------------------------------------------------------------------------
-  // Clock Gate - ONLY for AXIOM
-  // ---------------------------------------------------------------------------
-  wire axiom_clk_gated;
-  wire clock_gate_active;  // 1 = gated, 0 = active
-  
-  clock_gate u_axiom_gate (
-    .clk    (clk),
-    .enable (axiom_enable),
-    .gclk   (axiom_clk_gated),
-    .active (clock_gate_active)
-  );
+            // Door control - only open when:
+            // 1. In IDLE state
+            // 2. At target floor
+            // 3. A valid request has been received (door_opened flag)
+            if (current_state == IDLE && floor_reg == target_floor && request_strobe && request_valid) begin
+                door_open_reg <= 1'b1;
+                door_opened <= 1'b1;
+            end else if (door_opened && current_state == IDLE && floor_reg == target_floor) begin
+                // Keep door open after opening
+                door_open_reg <= 1'b1;
+            end else if (current_state == MOVING_UP || current_state == MOVING_DN) begin
+                // Close door when moving
+                door_open_reg <= 1'b0;
+                door_opened <= 1'b0;
+            end else begin
+                door_open_reg <= 1'b0;
+            end
 
-  // ---------------------------------------------------------------------------
-  // Elevator (uses ungated clock - ALWAYS RUNNING)
-  // ---------------------------------------------------------------------------
-  elevator_req_port u_req_port (
-    .clk         (clk),
-    .rst_n       (elevator_rst_n),
-    .strobe      (request_strobe),
-    .floor       (requested_floor),
-    .req_payload (req_payload),
-    .req_valid   (req_valid),
-    .req_ready   (req_ready)
-  );
+            // Error injection
+            if (fault_inject_en) begin
+                error_led_reg <= ~error_led_reg;
+            end else begin
+                error_led_reg <= 1'b0;
+            end
+        end
+    end
 
-  elevator u_elevator (
-    .clk             (clk),
-    .rst_n           (elevator_rst_n),
-    .request_strobe  (request_strobe),
-    .requested_floor (requested_floor),
-    .fault_inject_en (fault_inject_enable),
-    .current_floor   (current_floor),
-    .state           (elevator_state),
-    .door_open       (door_open),
-    .error_led       (elevator_error_led)
-  );
+    // Next state logic
+    always @(*) begin
+        next_state = current_state;
+        case (current_state)
+            IDLE: begin
+                if (request_strobe && request_valid) begin
+                    if (floor_reg < requested_floor)
+                        next_state = MOVING_UP;
+                    else if (floor_reg > requested_floor)
+                        next_state = MOVING_DN;
+                    else
+                        next_state = IDLE;
+                end
+            end
+            MOVING_UP: begin
+                if (floor_reg >= target_floor)
+                    next_state = IDLE;
+            end
+            MOVING_DN: begin
+                if (floor_reg <= target_floor)
+                    next_state = IDLE;
+            end
+            default: next_state = IDLE;
+        endcase
+    end
 
-  // ---------------------------------------------------------------------------
-  // Arbiter (uses ungated clock - needs to always respond)
-  // ---------------------------------------------------------------------------
-  wire grant_elev;
-  wire grant_axiom;
-  wire arbiter_queue_nonempty;
-
-  arbiter u_arbiter (
-    .clk             (clk),
-    .rst_n           (arbiter_rst_n),
-    .priority_req    (priority_override),
-    .elev_req_valid  (req_valid),
-    .elev_req_ready  (req_ready),
-    .elev_req_payload(req_payload),
-    .grant_elev      (grant_elev),
-    .grant_axiom     (grant_axiom),
-    .queue_nonempty  (arbiter_queue_nonempty)
-  );
-
-  // ---------------------------------------------------------------------------
-  // AXIOM shim (uses GATED clock)
-  // ---------------------------------------------------------------------------
-  wire [7:0] axiom_resp_out;
-  wire       axiom_mstrobe_led;
-
-  axiom_shim u_axiom_shim (
-    .clk              (axiom_clk_gated),
-    .rst_n            (axiom_rst_n_sync),
-    .axiom_rst        (axiom_rst),
-    .granted          (grant_axiom),
-    .cmd_in           (req_payload[3:0]),
-    .data_in          (8'h00),
-    .resp_out         (axiom_resp_out),
-    .misbehaviour_led (axiom_mstrobe_led)
-  );
-
-  // ---------------------------------------------------------------------------
-  // Output pad assignments
-  // ---------------------------------------------------------------------------
-  assign uo_out = { 
-    door_open,           // [7]
-    elevator_state,      // [6:4]
-    current_floor        // [3:0]
-  };
-
-  assign uio_out = { 
-    elevator_error_led,  // [7]
-    2'b00,               // [6:5] reserved
-    axiom_mstrobe_led,   // [4]
-    clock_gate_active,   // [3] ← 1 = gated, 0 = active
-    grant_axiom,         // [2]
-    grant_elev,          // [1]
-    1'b0                 // [0] input
-  };
-
-  assign uio_oe = 8'b1111_1110;
-
-  /* verilator lint_off UNUSED */
-  wire _unused = &{1'b0, uio_in[7:1], ena, axiom_resp_out};
-  /* verilator lint_on UNUSED */
+    // Outputs
+    assign current_floor = floor_reg;
+    assign state = current_state;
+    assign door_open = door_open_reg;
+    assign error_led = error_led_reg;
 
 endmodule
 
