@@ -163,66 +163,60 @@ jobs:
             # Check for wns.max.rpt (setup timing)
             if [ -f "$STA_DIR/wns.max.rpt" ]; then
               echo "Reading WNS from $STA_DIR/wns.max.rpt"
-              # Extract the actual value from the report
-              WNS=$(grep -E "^[^:]*: [0-9.-]+$" "$STA_DIR/wns.max.rpt" | head -1 | awk '{print $NF}')
-              # If that didn't work, try the other format
-              if [ -z "$WNS" ] || [ "$WNS" = "0.0" ]; then
-                WNS=$(grep -E "[0-9]+\.[0-9]+" "$STA_DIR/wns.max.rpt" | grep -v "Worst" | head -1 | awk '{print $NF}')
+              # Extract the actual value - look for a line with just a number or "corner: value"
+              WNS=$(grep -E ":[[:space:]]*[0-9.-]+$" "$STA_DIR/wns.max.rpt" | grep -v "Worst" | head -1 | sed 's/.*:[[:space:]]*//')
+              # If that didn't work, try to find any standalone number
+              if [ -z "$WNS" ] || [ "$WNS" = "" ] || [[ "$WNS" == *"-"* ]] && [ ${#WNS} -gt 10 ]; then
+                WNS=$(grep -oE "[0-9]+\.[0-9]+" "$STA_DIR/wns.max.rpt" | head -1)
               fi
             fi
             
             # Check for ws.max.rpt (hold timing - WHS)
             if [ -f "$STA_DIR/ws.max.rpt" ]; then
               echo "Reading WHS from $STA_DIR/ws.max.rpt"
-              # Extract the actual value from the report
-              WHS=$(grep -E "^[^:]*: [0-9.-]+$" "$STA_DIR/ws.max.rpt" | head -1 | awk '{print $NF}')
-              # If that didn't work, try the other format
-              if [ -z "$WHS" ] || [ "$WHS" = "0.0" ]; then
-                WHS=$(grep -E "[0-9]+\.[0-9]+" "$STA_DIR/ws.max.rpt" | grep -v "Worst" | head -1 | awk '{print $NF}')
+              # Extract the actual value
+              WHS=$(grep -E ":[[:space:]]*[0-9.-]+$" "$STA_DIR/ws.max.rpt" | grep -v "Worst" | head -1 | sed 's/.*:[[:space:]]*//')
+              if [ -z "$WHS" ] || [ "$WHS" = "" ]; then
+                WHS=$(grep -oE "[0-9]+\.[0-9]+" "$STA_DIR/ws.max.rpt" | head -1)
               fi
             fi
           fi
           
           # If still not found, check the second STA stage
-          if [ -z "$WNS" ] || [ "$WNS" = "unknown" ] || [ "$WNS" = "0.0" ]; then
+          if [ -z "$WNS" ] || [ "$WNS" = "unknown" ] || [ "$WNS" = "" ]; then
             STA_DIR2="runs/ci-timing/38-openroad-stamidpnr-2"
             if [ -d "$STA_DIR2" ]; then
               echo "Checking second STA stage: $STA_DIR2"
               if [ -f "$STA_DIR2/wns.max.rpt" ]; then
-                WNS=$(grep -E "^[^:]*: [0-9.-]+$" "$STA_DIR2/wns.max.rpt" | head -1 | awk '{print $NF}')
-                if [ -z "$WNS" ] || [ "$WNS" = "0.0" ]; then
-                  WNS=$(grep -E "[0-9]+\.[0-9]+" "$STA_DIR2/wns.max.rpt" | grep -v "Worst" | head -1 | awk '{print $NF}')
+                WNS=$(grep -E ":[[:space:]]*[0-9.-]+$" "$STA_DIR2/wns.max.rpt" | grep -v "Worst" | head -1 | sed 's/.*:[[:space:]]*//')
+                if [ -z "$WNS" ] || [ "$WNS" = "" ]; then
+                  WNS=$(grep -oE "[0-9]+\.[0-9]+" "$STA_DIR2/wns.max.rpt" | head -1)
                 fi
               fi
               if [ -f "$STA_DIR2/ws.max.rpt" ]; then
-                WHS=$(grep -E "^[^:]*: [0-9.-]+$" "$STA_DIR2/ws.max.rpt" | head -1 | awk '{print $NF}')
-                if [ -z "$WHS" ] || [ "$WHS" = "0.0" ]; then
-                  WHS=$(grep -E "[0-9]+\.[0-9]+" "$STA_DIR2/ws.max.rpt" | grep -v "Worst" | head -1 | awk '{print $NF}')
+                WHS=$(grep -E ":[[:space:]]*[0-9.-]+$" "$STA_DIR2/ws.max.rpt" | grep -v "Worst" | head -1 | sed 's/.*:[[:space:]]*//')
+                if [ -z "$WHS" ] || [ "$WHS" = "" ]; then
+                  WHS=$(grep -oE "[0-9]+\.[0-9]+" "$STA_DIR2/ws.max.rpt" | head -1)
                 fi
               fi
             fi
           fi
           
           # Clean up values - remove any non-numeric characters except decimal point and negative sign
-          WNS=$(echo "$WNS" | sed 's/[^0-9.-]//g')
-          WHS=$(echo "$WHS" | sed 's/[^0-9.-]//g')
-          
-          # If WNS is 0.0 but there might be a negative value, check for it
-          if [ "$WNS" = "0.0" ] || [ "$WNS" = "0" ]; then
-            # Check if there's a negative slack in the max.rpt file
-            if [ -f "$STA_DIR/max.rpt" ]; then
-              NEG_SLACK=$(grep -E "^-" "$STA_DIR/max.rpt" | head -1 | awk '{print $1}')
-              if [ -n "$NEG_SLACK" ]; then
-                WNS="$NEG_SLACK"
-              fi
-            fi
+          if [ -n "$WNS" ]; then
+            WNS=$(echo "$WNS" | sed 's/[^0-9.-]//g')
+          fi
+          if [ -n "$WHS" ]; then
+            WHS=$(echo "$WHS" | sed 's/[^0-9.-]//g')
           fi
           
-          # Set defaults if still empty
-          if [ -z "$WNS" ] || [ "$WNS" = "unknown" ] || [ "$WNS" = "" ]; then
+          # If WNS is empty or looks like dashes, set to 0.0
+          if [ -z "$WNS" ] || [ "$WNS" = "" ] || [[ "$WNS" == *"-"* ]] && [ ${#WNS} -gt 10 ]; then
             WNS="0.0"
           fi
-          if [ -z "$WHS" ] || [ "$WHS" = "unknown" ] || [ "$WHS" = "" ]; then
+          
+          # If WHS is empty or looks like dashes, set to 0.0
+          if [ -z "$WHS" ] || [ "$WHS" = "" ] || [[ "$WHS" == *"-"* ]] && [ ${#WHS} -gt 10 ]; then
             WHS="0.0"
           fi
           
