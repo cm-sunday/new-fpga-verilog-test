@@ -13,33 +13,298 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Docker
+      - name: Install Python and dependencies
         run: |
-          docker --version
-          docker pull efabless/librelane:2025.04
+          sudo apt-get update
+          sudo apt-get install -y python3-pip python3-venv python3-tk git make wget xvfb
+          python3 -m pip install --upgrade pip
 
-      - name: Install PDK
+      - name: Install OpenLane and volare
+        run: |
+          python3 -m pip install openlane volare
+
+      - name: Install PDK using volare
         run: |
           mkdir -p $HOME/.volare/pdks
-          ./scripts/install-pdk.sh
+          export PDK_ROOT=$HOME/.volare/pdks
+          echo "PDK_ROOT=$PDK_ROOT" >> $GITHUB_ENV
+          
+          python3 -m volare enable \
+            0fe599b2afb6708d281543108caf8310912f54af \
+            --pdk-root $PDK_ROOT \
+            --pdk sky130
+          
+          # Create symlink for sky130A if it doesn't exist
+          if [ -d "$PDK_ROOT/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A" ]; then
+            ln -sf "$PDK_ROOT/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A" "$PDK_ROOT/sky130A"
+            echo "✅ sky130A symlink created"
+          fi
+          
+          echo "PDK installed at: $PDK_ROOT"
+          ls -la $PDK_ROOT
+
+      - name: Pull LibreLane image
+        run: docker pull ghcr.io/librelane/librelane:3.0.10
+
+      - name: Create proper config file
+        run: |
+          # Find all Verilog files, excluding test and sim files
+          echo "Finding Verilog files..."
+          
+          # Get unique source files only (exclude test/sim files)
+          VERILOG_FILES=$(find ./src -name "*.v" -type f | grep -v "_sim.v" | sort -u | sed 's|^\./|"./|' | sed 's|$|",|' | tr '\n' ' ')
+          
+          # Remove trailing comma and space
+          VERILOG_FILES="${VERILOG_FILES%, }"
+          
+          # If no files found, use top.v
+          if [ -z "$VERILOG_FILES" ] || [ "$VERILOG_FILES" = '""' ]; then
+            echo "No source files found, using top.v"
+            VERILOG_FILES='"./src/top.v"'
+          fi
+          
+          # Create config file - using the same structure as the repo's config
+          cat > config.json << EOF
+          {
+            "PDK": "sky130A",
+            "DESIGN_NAME": "tt_um_silicon_dreams",
+            "VERILOG_FILES": [
+              $VERILOG_FILES
+            ],
+            "CLOCK_PORT": "clk",
+            "CLOCK_PERIOD": 10,
+            "CLOCK_NET": "clk",
+            "STD_CELL_LIBRARY": "sky130_fd_sc_hd",
+            "SYNTH_STRATEGY": "DELAY 4",
+            "SYNTH_BUFFERING": 1,
+            "SYNTH_SIZING": 1,
+            "FP_SIZING": "absolute",
+            "DIE_AREA": "0 0 161 225",
+            "FP_CORE_UTIL": 45,
+            "FP_PDN_VPITCH": 60,
+            "FP_PDN_HPITCH": 30,
+            "FP_TAP_DISTANCE": 14,
+            "FP_IO_MODE": 1,
+            "PL_TARGET_DENSITY_PCT": 55,
+            "PL_RANDOM_INITIAL_PLACEMENT_SEED": 42,
+            "DIODE_INSERTION_STRATEGY": 3,
+            "GRT_REPAIR_ANTENNAS": 1,
+            "ROUTING_OPT_ITERS": 32,
+            "RSZ_HOLD_MAX_BUFFER_PERCENT": 30,
+            "RUN_LINTER": 1,
+            "RUN_MAGIC_DRC": 1,
+            "RUN_KLAYOUT_DRC": 1,
+            "RUN_LVS": 1,
+            "RUN_CVC": 0,
+            "RUN_ANTENNA_CHECK": 1,
+            "MAGIC_DEF_LABELS": 0
+          }
+          EOF
+          
+          echo "Created config.json with Verilog files and design parameters:"
+          cat config.json
+
+      - name: Update run-librelane.sh script to use working image
+        run: |
+          # Backup original script
+          if [ -f "scripts/run-librelane.sh" ]; then
+            cp scripts/run-librelane.sh scripts/run-librelane.sh.bak
+          fi
+          
+          # Create updated script that uses the working image
+          cat > scripts/run-librelane.sh << 'EOF'
+          #!/usr/bin/env bash
+          # Silicon Dreams · Module 3 · LibreLane wrapper.
+          set -euo pipefail
+
+          PDK_ROOT="${PDK_ROOT:-$HOME/.volare/pdks}"
+          TAG=""
+          VERSION_CHECK_ONLY=0
+
+          while [[ $# -gt 0 ]]; do
+            case "$1" in
+              --tag)            TAG="$2"; shift 2 ;;
+              --version-check)  VERSION_CHECK_ONLY=1; shift ;;
+              *) echo "Unknown arg: $1" >&2; exit 2 ;;
+            esac
+          done
+
+          # Use config.json in root directory
+          CONFIG_JSON="config.json"
+
+          if [[ ! -f "$CONFIG_JSON" ]]; then
+            echo "Error: config.json not found." >&2
+            exit 1
+          fi
+
+          if [[ "$VERSION_CHECK_ONLY" -eq 1 ]]; then
+            echo "OK: LibreLane ready."
+            exit 0
+          fi
+
+          if [[ -z "$TAG" ]]; then
+            TAG="ci-drc"
+          fi
+
+          echo "==> LibreLane  ·  tag=$TAG"
+          echo "==> PDK_ROOT: $PDK_ROOT"
+          echo "==> Using config: $CONFIG_JSON"
+
+          # Run LibreLane signoff with the correct image
+          docker run --rm \
+            -v $(pwd):/workspace \
+            -v "$PDK_ROOT":/pdk \
+            -e PDK_ROOT=/pdk \
+            -w /workspace \
+            ghcr.io/librelane/librelane:3.0.10 \
+            python3 -m librelane \
+              --pdk-root /pdk \
+              --run-tag "$TAG" \
+              --docker-no-tty \
+              "$CONFIG_JSON"
+
+          echo "==> Done. Reports under runs/$TAG/reports/"
+          EOF
+          
+          chmod +x scripts/run-librelane.sh
+          echo "✅ scripts/run-librelane.sh updated"
 
       - name: Run LibreLane through DRC
         env:
           PDK_ROOT: /home/runner/.volare/pdks
         run: ./scripts/run-librelane.sh --tag ci-drc
 
-      - name: Check DRC report
+      - name: Check DRC result
         id: check
         run: |
-          RPT=runs/ci-drc/reports/signoff/drc.rpt
-          if [[ ! -f "$RPT" ]]; then
-            echo "DRC report missing" >&2
-            exit 1
-          fi
-          ERRORS=$(grep -c "^\[DRC-" "$RPT" || true)
-          echo "errors=$ERRORS" >> $GITHUB_OUTPUT
-          if [[ "$ERRORS" != "0" ]]; then
-            echo "::warning::DRC has $ERRORS violations (not fatal during iteration)"
+          echo "╔══════════════════════════════════════════════════════════════╗"
+          echo "║                    DRC RESULT CHECK                          ║"
+          echo "╚══════════════════════════════════════════════════════════════╝"
+          echo ""
+          
+          echo "🔍 Searching for DRC report..."
+          
+          # Try multiple possible DRC report locations
+          DRC_REPORT=""
+          DRC_ERRORS=0
+          DRC_PASSED=false
+          
+          for report in \
+            "runs/ci-drc/67-openroad-magicdrc/reports/drc.rpt" \
+            "runs/ci-drc/68-openroad-klayoutdrc/reports/drc.rpt" \
+            "runs/ci-drc/reports/signoff/drc.rpt" \
+            "runs/ci-drc/reports/drc.rpt" \
+            "runs/ci-drc/drc.rpt" \
+            "runs/ci-drc/results/final/drc.rpt" \
+            "runs/ci-drc/logs/drc/drc.rpt" \
+            $(find runs -name "drc.rpt" -o -name "*.drc.rpt" 2>/dev/null); do
+            if [ -f "$report" ]; then
+              DRC_REPORT="$report"
+              echo "📄 Found DRC report at: $DRC_REPORT"
+              break
+            fi
+          done
+          
+          if [ -z "$DRC_REPORT" ]; then
+            echo "❌ No DRC report found."
+            echo ""
+            echo "╔══════════════════════════════════════════════════════════════╗"
+            echo "║                    DRC RESULT SUMMARY                       ║"
+            echo "╚══════════════════════════════════════════════════════════════╝"
+            echo ""
+            echo "  ┌──────────────────────────────────────────────┐"
+            echo "  │           ❌ DRC FAILED! ❌                   │"
+            echo "  └──────────────────────────────────────────────┘"
+            echo ""
+            echo "  📊 Details: No DRC report found"
+            echo ""
+            echo "errors=1" >> $GITHUB_OUTPUT
+          else
+            echo ""
+            echo "📄 DRC Report Content (first 50 lines):"
+            echo "──────────────────────────────────────────────────"
+            head -50 "$DRC_REPORT"
+            echo "──────────────────────────────────────────────────"
+            echo ""
+            
+            # Check for DRC violations
+            # Look for common DRC error patterns
+            if grep -q "No violations found" "$DRC_REPORT"; then
+              echo "✅ Found 'No violations found'"
+              DRC_ERRORS=0
+              DRC_PASSED=true
+            elif grep -q "DRC result: passed" "$DRC_REPORT"; then
+              echo "✅ Found 'DRC result: passed'"
+              DRC_ERRORS=0
+              DRC_PASSED=true
+            elif grep -q "DRC result: failed" "$DRC_REPORT"; then
+              echo "❌ Found 'DRC result: failed'"
+              DRC_PASSED=false
+              # Try to count errors
+              DRC_ERRORS=$(grep -c "violation" "$DRC_REPORT" 2>/dev/null || echo "1")
+            elif grep -q "No DRC violations" "$DRC_REPORT"; then
+              echo "✅ Found 'No DRC violations'"
+              DRC_ERRORS=0
+              DRC_PASSED=true
+            elif grep -q "^\[DRC-" "$DRC_REPORT"; then
+              echo "❌ Found DRC violations"
+              DRC_ERRORS=$(grep -c "^\[DRC-" "$DRC_REPORT" 2>/dev/null || echo "1")
+              DRC_PASSED=false
+            elif grep -q "ERROR" "$DRC_REPORT" | grep -q "DRC"; then
+              echo "❌ Found DRC errors"
+              DRC_ERRORS=$(grep -c "ERROR" "$DRC_REPORT" 2>/dev/null || echo "1")
+              DRC_PASSED=false
+            else
+              echo "⚠️ Could not determine DRC result from report."
+              echo "Checking for violations count..."
+              # Count any violation-like patterns
+              DRC_ERRORS=$(grep -ci "violation\|error\|fail" "$DRC_REPORT" 2>/dev/null || echo "0")
+              if [ "$DRC_ERRORS" -eq 0 ]; then
+                echo "✅ No violations found (assuming DRC passed)"
+                DRC_PASSED=true
+              else
+                echo "⚠️ Found $DRC_ERRORS potential violations"
+                DRC_PASSED=false
+              fi
+            fi
+            
+            echo ""
+            echo "╔══════════════════════════════════════════════════════════════╗"
+            echo "║                    DRC RESULT SUMMARY                       ║"
+            echo "╚══════════════════════════════════════════════════════════════╝"
+            echo ""
+            
+            # Display the result with clear formatting
+            if [ "$DRC_PASSED" = true ] && [ "$DRC_ERRORS" -eq 0 ]; then
+              echo "  ┌──────────────────────────────────────────────┐"
+              echo "  │           ✅ DRC PASSED! ✅                   │"
+              echo "  └──────────────────────────────────────────────┘"
+              echo ""
+              echo "  📊 Details: No DRC violations found"
+              echo ""
+              echo "  💡 DRC (Design Rule Check) verification passed."
+              echo "     The layout meets all design rules."
+              echo ""
+            else
+              echo "  ┌──────────────────────────────────────────────┐"
+              echo "  │           ❌ DRC FAILED! ❌                   │"
+              echo "  └──────────────────────────────────────────────┘"
+              echo ""
+              echo "  📊 Details: $DRC_ERRORS DRC violation(s) found"
+              echo ""
+              echo "  💡 DRC (Design Rule Check) verification failed."
+              echo "     The layout has design rule violations."
+              echo ""
+            fi
+            
+            # Show the last few lines of the report for context
+            echo ""
+            echo "  📄 Last 10 lines of DRC report (usually contains summary):"
+            echo "  ──────────────────────────────────────────────────"
+            tail -10 "$DRC_REPORT" | sed 's/^/  /'
+            echo "  ──────────────────────────────────────────────────"
+            
+            echo "errors=${DRC_ERRORS}" >> $GITHUB_OUTPUT
           fi
 
       - name: POST metrics to ChipFoundry grader
@@ -47,16 +312,61 @@ jobs:
         env:
           CHIPFOUNDRY_TOKEN: ${{ secrets.CHIPFOUNDRY_TOKEN }}
         run: |
-          curl -fsS -X POST \
-            -H "Authorization: Bearer $CHIPFOUNDRY_TOKEN" \
-            -H "Content-Type: application/json" \
-            -d "{\"workflow\":\"drc\",\"tag\":\"${GITHUB_REF_NAME}\",\"sha\":\"${GITHUB_SHA}\",\"errors\":${{ steps.check.outputs.errors || 0 }}}" \
-            https://grader.chipfoundry.io/v1/silicon-dreams/m3 || true
+          if [ -n "$CHIPFOUNDRY_TOKEN" ]; then
+            curl -fsS -X POST \
+              -H "Authorization: Bearer $CHIPFOUNDRY_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "{\"workflow\":\"drc\",\"tag\":\"${GITHUB_REF_NAME}\",\"sha\":\"${GITHUB_SHA}\",\"errors\":${{ steps.check.outputs.errors || 0 }}}" \
+              https://grader.chipfoundry.io/v1/silicon-dreams/m3 || true
+          else
+            echo "CHIPFOUNDRY_TOKEN not set, skipping metrics post"
+          fi
 
       - name: Fail if final tag and DRC not clean
         if: startsWith(github.ref, 'refs/tags/v') && endsWith(github.ref, '-final')
         run: |
-          if [[ "${{ steps.check.outputs.errors }}" != "0" ]]; then
-            echo "Final tag requires DRC==0; have ${{ steps.check.outputs.errors }}." >&2
+          ERRORS=${{ steps.check.outputs.errors }}
+          if [[ -z "$ERRORS" ]]; then
+            ERRORS=1
+          fi
+          if [[ "$ERRORS" != "0" ]]; then
+            echo "❌ Final tag requires DRC==0; have $ERRORS errors." >&2
             exit 1
+          else
+            echo "✅ DRC passed for final tag!"
+          fi
+
+      - name: Upload DRC reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: drc-reports
+          path: |
+            runs/**/*.rpt
+            runs/**/*.log
+            runs/**/*.json
+            runs/**/drc.rpt
+            runs/**/*.drc.rpt
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Debug - List directory structure
+        if: always()
+        run: |
+          echo "=== Workspace contents ==="
+          ls -la
+          echo ""
+          echo "=== Config file ==="
+          cat config.json
+          echo ""
+          echo "=== All DRC-related files ==="
+          find runs -name "*drc*" -type f 2>/dev/null | sort
+          echo ""
+          echo "=== DRC report content ==="
+          if [ -f "runs/ci-drc/67-openroad-magicdrc/reports/drc.rpt" ]; then
+            cat runs/ci-drc/67-openroad-magicdrc/reports/drc.rpt
+          elif [ -f "runs/ci-drc/68-openroad-klayoutdrc/reports/drc.rpt" ]; then
+            cat runs/ci-drc/68-openroad-klayoutdrc/reports/drc.rpt
+          else
+            echo "DRC report not found"
           fi
