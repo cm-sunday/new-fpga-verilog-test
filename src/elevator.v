@@ -60,9 +60,10 @@ module elevator_state_machine (
   parameter MOVING_UP = 2'b10;
   parameter MOVING_DOWN = 2'b11;
   
-  // Reduced delay counter for 1x1 tile efficiency
+  // FIX: Use same width for both conditions
   parameter DELAY_WIDTH = 4;
-  parameter DELAY_COUNT = (DELAY_WIDTH == 4) ? 4'd10 : 24'd10000000;
+  // FIX: Both values should be the same width (4 bits)
+  parameter DELAY_COUNT = 4'd10;  // Removed the conditional to avoid width mismatch
   
   // State register
   reg [1:0] current_state, next_state;
@@ -119,6 +120,7 @@ module elevator_state_machine (
       current_state <= next_state; // Update the current state
             
       // Update the current_floor
+      // FIX: Use proper width comparison
       if (delay == DELAY_COUNT) begin
         delay <= 0; // Reset delay
         if (current_state == MOVING_UP) 
