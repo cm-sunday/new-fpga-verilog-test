@@ -37,7 +37,7 @@ jobs:
           # Create symlink for sky130A if it doesn't exist
           if [ -d "$PDK_ROOT/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A" ]; then
             ln -sf "$PDK_ROOT/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A" "$PDK_ROOT/sky130A"
-            echo "✅ sky130A symlink created"
+            echo " sky130A symlink created"
           fi
           
           echo "PDK installed at: $PDK_ROOT"
@@ -167,7 +167,7 @@ jobs:
           EOF
           
           chmod +x scripts/run-librelane.sh
-          echo "✅ scripts/run-librelane.sh updated"
+          echo " scripts/run-librelane.sh updated"
 
       - name: Run LibreLane through DRC
         env:
@@ -182,35 +182,35 @@ jobs:
           echo "╚══════════════════════════════════════════════════════════════╝"
           echo ""
           
-          echo "🔍 Searching for DRC reports..."
+          echo " Searching for DRC reports..."
           
           # Find Magic DRC report
           MAGIC_DRC=""
           if [ -f "runs/ci-drc/64-magic-drc/reports/drc.magic.rpt" ]; then
             MAGIC_DRC="runs/ci-drc/64-magic-drc/reports/drc.magic.rpt"
-            echo "📄 Found Magic DRC report at: $MAGIC_DRC"
+            echo " Found Magic DRC report at: $MAGIC_DRC"
           fi
           
           # Find KLayout DRC report
           KLAYOUT_DRC=""
           if [ -f "runs/ci-drc/65-klayout-drc/reports/drc.klayout.json" ]; then
             KLAYOUT_DRC="runs/ci-drc/65-klayout-drc/reports/drc.klayout.json"
-            echo "📄 Found KLayout DRC report at: $KLAYOUT_DRC"
+            echo " Found KLayout DRC report at: $KLAYOUT_DRC"
           fi
           
           # Check if either report exists
           if [ -z "$MAGIC_DRC" ] && [ -z "$KLAYOUT_DRC" ]; then
-            echo "❌ No DRC reports found."
+            echo " No DRC reports found."
             echo ""
             echo "╔══════════════════════════════════════════════════════════════╗"
             echo "║                    DRC RESULT SUMMARY                       ║"
             echo "╚══════════════════════════════════════════════════════════════╝"
             echo ""
             echo "  ┌──────────────────────────────────────────────┐"
-            echo "  │           ❌ DRC FAILED! ❌                   │"
+            echo "  │            DRC FAILED!                       │"
             echo "  └──────────────────────────────────────────────┘"
             echo ""
-            echo "  📊 Details: No DRC reports found"
+            echo "   Details: No DRC reports found"
             echo ""
             echo "errors=1" >> $GITHUB_OUTPUT
           else
@@ -221,7 +221,7 @@ jobs:
             # Check Magic DRC report
             if [ -n "$MAGIC_DRC" ]; then
               echo ""
-              echo "📄 Magic DRC Report Content (first 30 lines):"
+              echo " Magic DRC Report Content (first 30 lines):"
               echo "──────────────────────────────────────────────────"
               head -30 "$MAGIC_DRC"
               echo "──────────────────────────────────────────────────"
@@ -229,21 +229,21 @@ jobs:
               
               # Check Magic DRC result
               if grep -q "No violations found" "$MAGIC_DRC"; then
-                echo "✅ Magic DRC: No violations found"
+                echo " Magic DRC: No violations found"
               elif grep -q "Total errors: 0" "$MAGIC_DRC"; then
-                echo "✅ Magic DRC: Total errors: 0"
+                echo " Magic DRC: Total errors: 0"
               elif grep -q "DRC result: passed" "$MAGIC_DRC"; then
-                echo "✅ Magic DRC: Passed"
+                echo " Magic DRC: Passed"
               else
                 # Count violations in Magic DRC report
                 MAGIC_ERRORS=$(grep -c "error\|violation" "$MAGIC_DRC" 2>/dev/null || echo "0")
                 if [ "$MAGIC_ERRORS" -gt 0 ]; then
-                  echo "❌ Magic DRC: Found $MAGIC_ERRORS violations"
+                  echo " Magic DRC: Found $MAGIC_ERRORS violations"
                   DRC_ERRORS=$((DRC_ERRORS + MAGIC_ERRORS))
                   DRC_PASSED=false
                   DRC_DETAILS="Magic DRC: $MAGIC_ERRORS violations"
                 else
-                  echo "✅ Magic DRC: No violations found"
+                  echo " Magic DRC: No violations found"
                 fi
               fi
             fi
@@ -251,7 +251,7 @@ jobs:
             # Check KLayout DRC report (JSON format)
             if [ -n "$KLAYOUT_DRC" ]; then
               echo ""
-              echo "📄 KLayout DRC Report (JSON):"
+              echo " KLayout DRC Report (JSON):"
               echo "──────────────────────────────────────────────────"
               cat "$KLAYOUT_DRC" | head -30
               echo "──────────────────────────────────────────────────"
@@ -259,11 +259,11 @@ jobs:
               
               # Check KLayout DRC result from JSON
               if grep -q '"errors": 0' "$KLAYOUT_DRC" || grep -q '"violations": 0' "$KLAYOUT_DRC"; then
-                echo "✅ KLayout DRC: No violations found"
+                echo " KLayout DRC: No violations found"
               elif grep -q '"drc_passed": true' "$KLAYOUT_DRC"; then
-                echo "✅ KLayout DRC: Passed"
+                echo " KLayout DRC: Passed"
               elif grep -q '"drc_passed": false' "$KLAYOUT_DRC"; then
-                echo "❌ KLayout DRC: Failed"
+                echo " KLayout DRC: Failed"
                 # Try to count errors from JSON
                 KLAYOUT_ERRORS=$(grep -o '"errors": [0-9]*' "$KLAYOUT_DRC" 2>/dev/null | head -1 | cut -d: -f2 | tr -d ' ')
                 if [ -n "$KLAYOUT_ERRORS" ] && [ "$KLAYOUT_ERRORS" -gt 0 ]; then
@@ -282,12 +282,12 @@ jobs:
                 # Check for any error patterns in JSON
                 KLAYOUT_ERRORS=$(grep -c "error\|violation" "$KLAYOUT_DRC" 2>/dev/null || echo "0")
                 if [ "$KLAYOUT_ERRORS" -gt 0 ]; then
-                  echo "❌ KLayout DRC: Found $KLAYOUT_ERRORS potential violations"
+                  echo " KLayout DRC: Found $KLAYOUT_ERRORS potential violations"
                   DRC_ERRORS=$((DRC_ERRORS + KLAYOUT_ERRORS))
                   DRC_PASSED=false
                   DRC_DETAILS="KLayout DRC: $KLAYOUT_ERRORS violations"
                 else
-                  echo "✅ KLayout DRC: No violations found"
+                  echo " KLayout DRC: No violations found"
                 fi
               fi
             fi
@@ -295,7 +295,7 @@ jobs:
             # Check the detailed routing DRC file as well
             if [ -f "runs/ci-drc/44-openroad-detailedrouting/tt_um_silicon_dreams.drc" ]; then
               echo ""
-              echo "📄 Detailed Routing DRC file:"
+              echo " Detailed Routing DRC file:"
               echo "──────────────────────────────────────────────────"
               cat "runs/ci-drc/44-openroad-detailedrouting/tt_um_silicon_dreams.drc" | head -20
               echo "──────────────────────────────────────────────────"
@@ -303,7 +303,7 @@ jobs:
               # Count violations in detailed routing DRC
               ROUTING_ERRORS=$(grep -c "violation\|error" "runs/ci-drc/44-openroad-detailedrouting/tt_um_silicon_dreams.drc" 2>/dev/null || echo "0")
               if [ "$ROUTING_ERRORS" -gt 0 ]; then
-                echo "❌ Detailed Routing: Found $ROUTING_ERRORS violations"
+                echo " Detailed Routing: Found $ROUTING_ERRORS violations"
                 DRC_ERRORS=$((DRC_ERRORS + ROUTING_ERRORS))
                 DRC_PASSED=false
                 DRC_DETAILS="${DRC_DETAILS} | Detailed routing: $ROUTING_ERRORS violations"
@@ -324,26 +324,26 @@ jobs:
             # Display the result with clear formatting
             if [ "$DRC_PASSED" = true ] && [ "$DRC_ERRORS" -eq 0 ]; then
               echo "  ┌──────────────────────────────────────────────┐"
-              echo "  │           ✅ DRC PASSED! ✅                   │"
+              echo "  │            DRC PASSED!                       │"
               echo "  └──────────────────────────────────────────────┘"
               echo ""
-              echo "  📊 Details: No DRC violations found"
+              echo "   Details: No DRC violations found"
               echo ""
-              echo "  💡 DRC (Design Rule Check) verification passed."
+              echo "   DRC (Design Rule Check) verification passed."
               echo "     The layout meets all design rules."
               echo ""
               echo "errors=0" >> $GITHUB_OUTPUT
             else
               echo "  ┌──────────────────────────────────────────────┐"
-              echo "  │           ❌ DRC FAILED! ❌                   │"
+              echo "  │            DRC FAILED!                       │"
               echo "  └──────────────────────────────────────────────┘"
               echo ""
-              echo "  📊 Details: $DRC_ERRORS DRC violation(s) found"
+              echo "   Details: $DRC_ERRORS DRC violation(s) found"
               if [ -n "$DRC_DETAILS" ]; then
-                echo "  📝 $DRC_DETAILS"
+                echo "   $DRC_DETAILS"
               fi
               echo ""
-              echo "  💡 DRC (Design Rule Check) verification failed."
+              echo "   DRC (Design Rule Check) verification failed."
               echo "     The layout has design rule violations."
               echo ""
               echo "errors=${DRC_ERRORS}" >> $GITHUB_OUTPUT
@@ -352,7 +352,7 @@ jobs:
             # Show the last few lines of the Magic DRC report for context
             if [ -n "$MAGIC_DRC" ]; then
               echo ""
-              echo "  📄 Last 10 lines of Magic DRC report (usually contains summary):"
+              echo "   Last 10 lines of Magic DRC report (usually contains summary):"
               echo "  ──────────────────────────────────────────────────"
               tail -10 "$MAGIC_DRC" | sed 's/^/  /'
               echo "  ──────────────────────────────────────────────────"
@@ -382,10 +382,10 @@ jobs:
             ERRORS=1
           fi
           if [[ "$ERRORS" != "0" ]]; then
-            echo "❌ Final tag requires DRC==0; have $ERRORS errors." >&2
+            echo " Final tag requires DRC==0; have $ERRORS errors." >&2
             exit 1
           else
-            echo "✅ DRC passed for final tag!"
+            echo " DRC passed for final tag!"
           fi
 
       - name: Upload DRC reports
