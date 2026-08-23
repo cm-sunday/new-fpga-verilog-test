@@ -27,7 +27,8 @@ module reset_synchroniser #(
       sync_ff1 <= 1'b0;
       sync_ff2 <= 1'b0;
       sync_out <= 1'b0;
-      hold_cnt <= HOLD_CYCLES - 1;
+      // FIX: Use 8-bit constant to match width
+      hold_cnt <= HOLD_CYCLES - 8'd1;
     end else begin
       sync_ff1 <= 1'b1;
       sync_ff2 <= sync_ff1;
