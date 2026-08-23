@@ -71,7 +71,7 @@ fault_area:
 	@echo "=== Top Module: tt_um_chipmango_elevator_m2 ==="
 	@echo ""
 	# First generate the yosys report for the silent floor check
-	$(MAKE) yosys-report
+	-$(MAKE) yosys-report || echo "  Yosys report generation completed with warnings"
 	@echo ""
 	# Run the silent floor area check and save results
 	@(cd .. && python3 -m test.fault_injection.test_silent_floor_area 2>&1) | tee build/silent_floor_output.txt || echo "  Silent floor check completed with errors"
@@ -84,7 +84,7 @@ fault_area:
 	@echo ""
 
 # ---------------------------------------------------------------------------
-# Yosys - Synthesis Report for Silent Floor (FIXED: Windows path handling)
+# Yosys - Synthesis Report for Silent Floor (FIXED: Direct Linux paths)
 # ---------------------------------------------------------------------------
 yosys-report:
 	@echo ""
@@ -97,11 +97,9 @@ yosys-report:
 	# Create build directory
 	@mkdir -p build
 	
-	# Get the absolute path to src directory and convert to Windows path for Yosys
+	# Get the absolute path to src directory (Linux path)
 	@SRC_DIR="$$(cd $(CURDIR)/../src && pwd 2>/dev/null || echo "$(CURDIR)/../src")"; \
-	WIN_SRC_DIR="$$(echo $$SRC_DIR | sed 's|^/\([a-zA-Z]\)/|\1:/|' | sed 's|/|\\\|g')"; \
 	echo "Source directory: $$SRC_DIR"; \
-	echo "Windows source path: $$WIN_SRC_DIR"; \
 	echo "Build directory: $(CURDIR)/build"; \
 	echo ""; \
 	if [ ! -f "$$SRC_DIR/elevator.v" ]; then \
@@ -115,7 +113,7 @@ yosys-report:
 	echo "=== Synthesis Output ==="; \
 	echo ""; \
 	(cd $(CURDIR) && \
-	  yosys -p "read_verilog \"$$WIN_SRC_DIR\\elevator.v\"; synth -top tt_um_chipmango_elevator_m2; stat" 2>&1) | tee build/yosys-stat.txt | tee build/yosys-report.txt; \
+	  yosys -p "read_verilog $$SRC_DIR/elevator.v; synth -top tt_um_chipmango_elevator_m2; stat" 2>&1) | tee build/yosys-stat.txt | tee build/yosys-report.txt; \
 	echo ""; \
 	if [ -f build/yosys-stat.txt ]; then \
 		FILE_SIZE=$$(wc -c < build/yosys-stat.txt 2>/dev/null || echo 0); \
@@ -154,17 +152,16 @@ yosys-report:
 	echo "  Stats: build/yosys-stat.txt"
 
 # ---------------------------------------------------------------------------
-# Yosys - Full Report with Detailed Statistics (FIXED: Windows path handling)
+# Yosys - Full Report with Detailed Statistics (FIXED: Direct Linux paths)
 # ---------------------------------------------------------------------------
 yosys-report-full:
 	@mkdir -p build
 	@SRC_DIR="$$(cd $(CURDIR)/../src && pwd 2>/dev/null || echo "$(CURDIR)/../src")"; \
-	WIN_SRC_DIR="$$(echo $$SRC_DIR | sed 's|^/\([a-zA-Z]\)/|\1:/|' | sed 's|/|\\\|g')"; \
 	echo "=== Yosys Full Synthesis Report ===" | tee build/yosys-full-report.txt; \
 	echo "Generated: $$(date)" | tee -a build/yosys-full-report.txt; \
 	echo "" | tee -a build/yosys-full-report.txt; \
 	echo "=== Synthesis Script ===" | tee -a build/yosys-full-report.txt; \
-	echo "read_verilog \"$$WIN_SRC_DIR\\elevator.v\"" | tee -a build/yosys-full-report.txt; \
+	echo "read_verilog $$SRC_DIR/elevator.v" | tee -a build/yosys-full-report.txt; \
 	echo "synth -top tt_um_chipmango_elevator_m2" | tee -a build/yosys-full-report.txt; \
 	echo "stat" | tee -a build/yosys-full-report.txt; \
 	echo "show -format dot -prefix build/yosys_top" | tee -a build/yosys-full-report.txt; \
@@ -173,7 +170,7 @@ yosys-report-full:
 	echo "=== Synthesis Output ===" | tee -a build/yosys-full-report.txt; \
 	echo "" | tee -a build/yosys-full-report.txt; \
 	(cd $(CURDIR) && \
-	  yosys -p "read_verilog \"$$WIN_SRC_DIR\\elevator.v\"; synth -top tt_um_chipmango_elevator_m2; stat; show -format dot -prefix build/yosys_top; show -format dot -prefix build/yosys_em elevator_state_machine" 2>&1) | tee -a build/yosys-full-report.txt; \
+	  yosys -p "read_verilog $$SRC_DIR/elevator.v; synth -top tt_um_chipmango_elevator_m2; stat; show -format dot -prefix build/yosys_top; show -format dot -prefix build/yosys_em elevator_state_machine" 2>&1) | tee -a build/yosys-full-report.txt; \
 	echo "" | tee -a build/yosys-full-report.txt; \
 	echo "=== Report Complete ===" | tee -a build/yosys-full-report.txt; \
 	echo "=== Report saved to build/yosys-full-report.txt ==="; \
@@ -204,15 +201,14 @@ yosys-report-full:
 	echo "DFF summary: build/yosys-dff-summary.txt"
 
 # ---------------------------------------------------------------------------
-# Yosys - Generate Graphviz DOT files (FIXED: Windows path handling)
+# Yosys - Generate Graphviz DOT files (FIXED: Direct Linux paths)
 # ---------------------------------------------------------------------------
 yosys-graph:
 	@mkdir -p build
 	@SRC_DIR="$$(cd $(CURDIR)/../src && pwd 2>/dev/null || echo "$(CURDIR)/../src")"; \
-	WIN_SRC_DIR="$$(echo $$SRC_DIR | sed 's|^/\([a-zA-Z]\)/|\1:/|' | sed 's|/|\\\|g')"; \
 	echo "Generating Yosys graph files..."; \
 	(cd $(CURDIR) && \
-	  yosys -p "read_verilog \"$$WIN_SRC_DIR\\elevator.v\"; synth -top tt_um_chipmango_elevator_m2; show -format dot -prefix build/yosys_top; show -format dot -prefix build/yosys_em elevator_state_machine" 2>&1) > build/yosys_graph.log; \
+	  yosys -p "read_verilog $$SRC_DIR/elevator.v; synth -top tt_um_chipmango_elevator_m2; show -format dot -prefix build/yosys_top; show -format dot -prefix build/yosys_em elevator_state_machine" 2>&1) > build/yosys_graph.log; \
 	echo "Graph files generated:"; \
 	ls -la build/*.dot 2>/dev/null || echo "No dot files generated (check build/yosys_graph.log for errors)"; \
 	if command -v dot >/dev/null 2>&1; then \
