@@ -19,7 +19,8 @@ module elevator (
     localparam IDLE      = 3'b000;
     localparam MOVING_UP = 3'b001;
     localparam MOVING_DN = 3'b010;
-    localparam DOOR_OPEN = 3'b011;
+    // FIX: Remove unused parameter
+    // localparam DOOR_OPEN = 3'b011;
 
     reg [2:0] current_state, next_state;
     reg [3:0] floor_reg;
@@ -29,8 +30,8 @@ module elevator (
     reg       error_led_reg;
     reg       door_opened;          // Track if door has been opened
 
-    // Validate request
-    wire request_valid = (requested_floor >= 4'd0 && requested_floor <= 4'd8);
+    // FIX: Remove redundant >= 4'd0 check (unsigned can't be negative)
+    wire request_valid = (requested_floor <= 4'd8);
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -40,7 +41,7 @@ module elevator (
             delay_counter <= 4'd0;
             door_open_reg <= 1'b0;
             error_led_reg <= 1'b0;
-            door_opened <= 1'b0;     // ✅ Door not opened yet
+            door_opened <= 1'b0;     // Door not opened yet
         end else begin
             current_state <= next_state;
             
