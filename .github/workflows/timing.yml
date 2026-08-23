@@ -48,43 +48,19 @@ jobs:
 
       - name: Create proper config file
         run: |
-          # Find all Verilog files
+          # Find all Verilog files, excluding test and sim files
           echo "Finding Verilog files..."
-          find . -name "*.v" -type f | head -20
-          find . -name "*.sv" -type f | head -20
           
-          # Build VERILOG_FILES array from actual files
-          VERILOG_FILES=""
-          
-          # Check for Verilog files in common locations
-          for pattern in "*.v" "*.sv" "src/*.v" "src/*.sv" "rtl/*.v" "rtl/*.sv" "hw/*.v" "hw/*.sv" "*.v" "*.sv"; do
-            # Find files matching pattern and add them
-            while IFS= read -r file; do
-              if [ -n "$file" ]; then
-                VERILOG_FILES="${VERILOG_FILES}\"$file\", "
-              fi
-            done < <(find . -name "$(basename $pattern)" -type f -not -path "./.git/*" 2>/dev/null | head -10)
-          done
-          
-          # If no files found with patterns, try to find any .v or .sv files
-          if [ -z "$VERILOG_FILES" ]; then
-            echo "No Verilog files found with patterns, searching for any .v or .sv files..."
-            while IFS= read -r file; do
-              if [ -n "$file" ]; then
-                # Remove leading ./
-                file="${file#./}"
-                VERILOG_FILES="${VERILOG_FILES}\"$file\", "
-              fi
-            done < <(find . -name "*.v" -o -name "*.sv" -type f -not -path "./.git/*" 2>/dev/null | head -10)
-          fi
+          # Get unique source files only (exclude test/sim files)
+          VERILOG_FILES=$(find ./src -name "*.v" -type f | grep -v "_sim.v" | sort -u | sed 's|^\./|"./|' | sed 's|$|",|' | tr '\n' ' ')
           
           # Remove trailing comma and space
           VERILOG_FILES="${VERILOG_FILES%, }"
           
-          # If still no files, use default
-          if [ -z "$VERILOG_FILES" ]; then
-            echo "WARNING: No Verilog files found. Using default pattern."
-            VERILOG_FILES='"./*.v"'
+          # If no files found, use top.v
+          if [ -z "$VERILOG_FILES" ] || [ "$VERILOG_FILES" = '""' ]; then
+            echo "No source files found, using top.v"
+            VERILOG_FILES='"./src/top.v"'
           fi
           
           # Create config file
@@ -263,18 +239,15 @@ jobs:
           echo "=== Workspace contents ==="
           ls -la
           echo ""
-          echo "=== All Verilog/SV files ==="
-          find . -name "*.v" -o -name "*.sv" -type f | head -20
+          echo "=== Source files ==="
+          find ./src -name "*.v" -type f | head -20
           echo ""
           echo "=== Config files ==="
           cat config.json
           echo ""
-          echo "=== Docker images ==="
-          docker images
-          echo ""
-          echo "=== Scripts ==="
-          ls -la scripts/ 2>/dev/null || echo "No scripts directory"
-          echo ""
-          echo "=== PDK location ==="
-          echo "PDK_ROOT: $HOME/.volare/pdks"
-          ls -la $HOME/.volare/pdks 2>/dev/null || echo "PDK not found"
+          echo "=== Runs directory ==="
+          if [ -d "runs" ]; then
+            find runs -type f 2>/dev/null | head -30
+          else
+            echo "No runs directory found"
+          fi
