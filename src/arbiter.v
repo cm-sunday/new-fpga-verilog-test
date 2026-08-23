@@ -1,10 +1,17 @@
+// =============================================================================
+// arbiter.v - Round-robin arbiter with priority mode
+// =============================================================================
+`default_nettype none
+
 module arbiter (
   input  wire       clk,
   input  wire       rst_n,
   input  wire       priority_req,
   input  wire       elev_req_valid,
   output wire       elev_req_ready,
+  /* verilator lint_off UNUSEDSIGNAL */
   input  wire [3:0] elev_req_payload,
+  /* verilator lint_on UNUSEDSIGNAL */
   output reg        grant_elev,
   output reg        grant_axiom,
   output wire       queue_nonempty
@@ -61,3 +68,5 @@ module arbiter (
   assign queue_nonempty = elev_req_valid || pending_request;
 
 endmodule
+
+`default_nettype wire
