@@ -63,7 +63,7 @@ jobs:
             VERILOG_FILES='"./src/top.v"'
           fi
           
-          # Create config file
+          # Create config file - using the same structure as the repo's config
           cat > config.json << EOF
           {
             "PDK": "sky130A",
@@ -72,11 +72,36 @@ jobs:
               $VERILOG_FILES
             ],
             "CLOCK_PORT": "clk",
-            "CLOCK_PERIOD": 10
+            "CLOCK_PERIOD": 10,
+            "CLOCK_NET": "clk",
+            "STD_CELL_LIBRARY": "sky130_fd_sc_hd",
+            "SYNTH_STRATEGY": "DELAY 4",
+            "SYNTH_BUFFERING": 1,
+            "SYNTH_SIZING": 1,
+            "FP_SIZING": "absolute",
+            "DIE_AREA": "0 0 161 225",
+            "FP_CORE_UTIL": 45,
+            "FP_PDN_VPITCH": 60,
+            "FP_PDN_HPITCH": 30,
+            "FP_TAP_DISTANCE": 14,
+            "FP_IO_MODE": 1,
+            "PL_TARGET_DENSITY_PCT": 55,
+            "PL_RANDOM_INITIAL_PLACEMENT_SEED": 42,
+            "DIODE_INSERTION_STRATEGY": 3,
+            "GRT_REPAIR_ANTENNAS": 1,
+            "ROUTING_OPT_ITERS": 32,
+            "RSZ_HOLD_MAX_BUFFER_PERCENT": 30,
+            "RUN_LINTER": 1,
+            "RUN_MAGIC_DRC": 1,
+            "RUN_KLAYOUT_DRC": 1,
+            "RUN_LVS": 1,
+            "RUN_CVC": 0,
+            "RUN_ANTENNA_CHECK": 1,
+            "MAGIC_DEF_LABELS": 0
           }
           EOF
           
-          echo "Created config.json with Verilog files:"
+          echo "Created config.json with Verilog files and design parameters:"
           cat config.json
 
       - name: Update run-librelane.sh script to use working image
@@ -283,6 +308,12 @@ jobs:
         run: |
           echo "=== Workspace contents ==="
           ls -la
+          echo ""
+          echo "=== Source files ==="
+          find ./src -name "*.v" -type f | head -20
+          echo ""
+          echo "=== Config file ==="
+          cat config.json
           echo ""
           echo "=== STA Reports ==="
           find runs -path "*/31-openroad-stamidpnr/*" -name "*.rpt" -type f 2>/dev/null | sort
