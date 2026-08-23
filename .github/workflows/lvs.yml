@@ -182,13 +182,15 @@ jobs:
           # Try multiple possible LVS report locations
           LVS_REPORT=""
           for report in \
+            "runs/ci-lvs/70-netgen-lvs/reports/lvs.netgen.rpt" \
+            "runs/ci-lvs/70-netgen-lvs/reports/lvs.rpt" \
             "runs/ci-lvs/reports/signoff/lvs.rpt" \
             "runs/ci-lvs/reports/lvs.rpt" \
             "runs/ci-lvs/lvs.rpt" \
             "runs/ci-lvs/results/final/lvs.rpt" \
             "runs/ci-lvs/logs/lvs/lvs.rpt" \
             "runs/ci-lvs/69-openroad-lvs/lvs.rpt" \
-            $(find runs -name "lvs.rpt" -o -name "*.lvs.rpt" 2>/dev/null); do
+            $(find runs -name "*.lvs.rpt" -o -name "lvs.netgen.rpt" -o -name "lvs.rpt" 2>/dev/null); do
             if [ -f "$report" ]; then
               LVS_REPORT="$report"
               echo "Found LVS report at: $LVS_REPORT"
@@ -197,34 +199,37 @@ jobs:
           done
           
           if [ -z "$LVS_REPORT" ]; then
-            echo "No LVS report found. Checking for LVS in flow logs..."
-            # Check if LVS was run at all
-            if grep -r "LVS" runs/ci-lvs/ --include="*.log" 2>/dev/null | grep -q "PASS"; then
-              echo "LVS passed based on logs"
-              echo "match=true" >> $GITHUB_OUTPUT
-            elif grep -r "LVS" runs/ci-lvs/ --include="*.log" 2>/dev/null | grep -q "FAIL"; then
-              echo "LVS failed based on logs"
-              echo "match=false" >> $GITHUB_OUTPUT
-            else
-              echo "Could not determine LVS result"
-              echo "match=false" >> $GITHUB_OUTPUT
-            fi
+            echo "❌ No LVS report found."
+            echo "match=false" >> $GITHUB_OUTPUT
           else
-            # Check the LVS report
+            echo "=== LVS Report Content ==="
+            cat "$LVS_REPORT"
+            echo "=========================="
+            
+            # Check the LVS report for pass/fail
             if grep -q "Circuits match: MATCH" "$LVS_REPORT"; then
-              echo "✅ LVS passed!"
+              echo "✅ LVS passed! (Circuits match: MATCH)"
+              echo "match=true" >> $GITHUB_OUTPUT
+            elif grep -q "Circuits match: MISMATCH" "$LVS_REPORT"; then
+              echo "❌ LVS failed! (Circuits match: MISMATCH)"
+              echo "match=false" >> $GITHUB_OUTPUT
+            elif grep -q "Netlists match" "$LVS_REPORT"; then
+              echo "✅ LVS passed! (Netlists match)"
               echo "match=true" >> $GITHUB_OUTPUT
             elif grep -q "LVS result: passed" "$LVS_REPORT"; then
               echo "✅ LVS passed!"
               echo "match=true" >> $GITHUB_OUTPUT
+            elif grep -q "LVS result: failed" "$LVS_REPORT"; then
+              echo "❌ LVS failed!"
+              echo "match=false" >> $GITHUB_OUTPUT
             elif grep -q "match" "$LVS_REPORT" | grep -q "true"; then
               echo "✅ LVS passed!"
               echo "match=true" >> $GITHUB_OUTPUT
             else
-              echo "❌ LVS failed or report format not recognized"
-              echo "match=false" >> $GITHUB_OUTPUT
+              echo "⚠️ Could not determine LVS result from report."
               echo "First few lines of LVS report:"
               head -20 "$LVS_REPORT"
+              echo "match=false" >> $GITHUB_OUTPUT
             fi
           fi
 
@@ -262,6 +267,7 @@ jobs:
             runs/**/*.rpt
             runs/**/*.log
             runs/**/*.json
+            runs/**/lvs.netgen.rpt
           retention-days: 30
           if-no-files-found: warn
 
@@ -274,12 +280,12 @@ jobs:
           echo "=== Config file ==="
           cat config.json
           echo ""
-          echo "=== Runs directory ==="
-          if [ -d "runs" ]; then
-            find runs -type f 2>/dev/null | head -30
-          else
-            echo "No runs directory found"
-          fi
+          echo "=== All LVS-related files ==="
+          find runs -name "*lvs*" -type f 2>/dev/null | sort
           echo ""
-          echo "=== LVS reports ==="
-          find runs -name "lvs*" -o -name "*.lvs*" 2>/dev/null | head -20
+          echo "=== LVS report content ==="
+          if [ -f "runs/ci-lvs/70-netgen-lvs/reports/lvs.netgen.rpt" ]; then
+            cat runs/ci-lvs/70-netgen-lvs/reports/lvs.netgen.rpt
+          else
+            echo "LVS report not found"
+          fi
