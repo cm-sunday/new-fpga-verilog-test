@@ -54,4 +54,4 @@ jobs:
           if [[ "${{ steps.check.outputs.match }}" != "true" ]]; then
             echo "Final tag requires LVS match." >&2
             exit 1
-          fi
+          fi check and fix it on:
