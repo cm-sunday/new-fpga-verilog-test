@@ -22,7 +22,8 @@ module tt_um_chipmango_elevator_m2 (  // FIX: Unique name for m2
     wire [3:0] floor;
     wire [3:0] requested_floor_raw;
     wire       requested_floor_valid;
-    wire _unused = &{ena, uio_in[6:0], 1'b0};  // FIX: Only uio_in[6:0] unused
+    // FIX: Consume all unused signals (ena and ALL uio_in bits)
+    wire _unused = &{ena, uio_in, 1'b0};  // Now uses all uio_in bits [7:0]
 
     // FLOOR 1 FIX: bit_position_to_value with valid output
     bit_position_to_value b_pos(
@@ -42,6 +43,11 @@ module tt_um_chipmango_elevator_m2 (  // FIX: Unique name for m2
 
     // FLOOR 5 FIX: Connect debug state directly from the instance
     wire [3:0] debug_state;
+    // FIX: Consume debug_state to prevent unused warning
+    // Option A: Output to unused UIO pins (if you have spare outputs)
+    // assign uio_out[6:3] = debug_state;
+    // Option B: Just consume it quietly (recommended if you want to keep it for debugging)
+    wire _unused_debug = &{debug_state};  // Consumes debug_state without affecting outputs
 
     elevator_state_machine em (
         .clk(clk),
