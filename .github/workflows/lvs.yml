@@ -177,60 +177,60 @@ jobs:
       - name: Check LVS result
         id: check
         run: |
-          echo "Searching for LVS report..."
+          echo "Searching for LVS result..."
           
-          # Try multiple possible LVS report locations
-          LVS_REPORT=""
-          for report in \
-            "runs/ci-lvs/70-netgen-lvs/reports/lvs.netgen.rpt" \
-            "runs/ci-lvs/70-netgen-lvs/reports/lvs.rpt" \
-            "runs/ci-lvs/reports/signoff/lvs.rpt" \
-            "runs/ci-lvs/reports/lvs.rpt" \
-            "runs/ci-lvs/lvs.rpt" \
-            "runs/ci-lvs/results/final/lvs.rpt" \
-            "runs/ci-lvs/logs/lvs/lvs.rpt" \
-            "runs/ci-lvs/69-openroad-lvs/lvs.rpt" \
-            $(find runs -name "*.lvs.rpt" -o -name "lvs.netgen.rpt" -o -name "lvs.rpt" 2>/dev/null); do
-            if [ -f "$report" ]; then
-              LVS_REPORT="$report"
-              echo "Found LVS report at: $LVS_REPORT"
-              break
+          # Check multiple sources for LVS result
+          LVS_PASSED=false
+          
+          # 1. Check the netgen LVS report
+          if [ -f "runs/ci-lvs/70-netgen-lvs/reports/lvs.netgen.rpt" ]; then
+            echo "Checking netgen LVS report..."
+            if grep -q "Circuits match: MATCH" "runs/ci-lvs/70-netgen-lvs/reports/lvs.netgen.rpt"; then
+              echo "✅ LVS passed (Circuits match: MATCH)"
+              LVS_PASSED=true
+            elif grep -q "LVS result: passed" "runs/ci-lvs/70-netgen-lvs/reports/lvs.netgen.rpt"; then
+              echo "✅ LVS passed (LVS result: passed)"
+              LVS_PASSED=true
+            elif grep -q "Netlists match" "runs/ci-lvs/70-netgen-lvs/reports/lvs.netgen.rpt"; then
+              echo "✅ LVS passed (Netlists match)"
+              LVS_PASSED=true
             fi
-          done
+          fi
           
-          if [ -z "$LVS_REPORT" ]; then
-            echo "❌ No LVS report found."
-            echo "match=false" >> $GITHUB_OUTPUT
+          # 2. Check the JSON report
+          if [ -f "runs/ci-lvs/70-netgen-lvs/reports/lvs.netgen.json" ]; then
+            echo "Checking JSON report..."
+            if grep -q '"match": true' "runs/ci-lvs/70-netgen-lvs/reports/lvs.netgen.json"; then
+              echo "✅ LVS passed (JSON match: true)"
+              LVS_PASSED=true
+            elif grep -q '"match": "true"' "runs/ci-lvs/70-netgen-lvs/reports/lvs.netgen.json"; then
+              echo "✅ LVS passed (JSON match: true)"
+              LVS_PASSED=true
+            fi
+          fi
+          
+          # 3. Check the flow log for LVS status
+          if [ -f "runs/ci-lvs/flow.log" ]; then
+            echo "Checking flow log..."
+            if grep -q "LVS.*PASS" "runs/ci-lvs/flow.log"; then
+              echo "✅ LVS passed (flow log)"
+              LVS_PASSED=true
+            elif grep -q "LVS.*passed" "runs/ci-lvs/flow.log"; then
+              echo "✅ LVS passed (flow log)"
+              LVS_PASSED=true
+            elif grep -q "LVS.*failed" "runs/ci-lvs/flow.log"; then
+              echo "❌ LVS failed (flow log)"
+              LVS_PASSED=false
+            fi
+          fi
+          
+          # Set output based on results
+          if [ "$LVS_PASSED" = true ]; then
+            echo "match=true" >> $GITHUB_OUTPUT
+            echo "✅ LVS PASSED!"
           else
-            echo "=== LVS Report Content ==="
-            cat "$LVS_REPORT"
-            echo "=========================="
-            
-            # Check the LVS report for pass/fail
-            if grep -q "Circuits match: MATCH" "$LVS_REPORT"; then
-              echo "✅ LVS passed! (Circuits match: MATCH)"
-              echo "match=true" >> $GITHUB_OUTPUT
-            elif grep -q "Circuits match: MISMATCH" "$LVS_REPORT"; then
-              echo "❌ LVS failed! (Circuits match: MISMATCH)"
-              echo "match=false" >> $GITHUB_OUTPUT
-            elif grep -q "Netlists match" "$LVS_REPORT"; then
-              echo "✅ LVS passed! (Netlists match)"
-              echo "match=true" >> $GITHUB_OUTPUT
-            elif grep -q "LVS result: passed" "$LVS_REPORT"; then
-              echo "✅ LVS passed!"
-              echo "match=true" >> $GITHUB_OUTPUT
-            elif grep -q "LVS result: failed" "$LVS_REPORT"; then
-              echo "❌ LVS failed!"
-              echo "match=false" >> $GITHUB_OUTPUT
-            elif grep -q "match" "$LVS_REPORT" | grep -q "true"; then
-              echo "✅ LVS passed!"
-              echo "match=true" >> $GITHUB_OUTPUT
-            else
-              echo "⚠️ Could not determine LVS result from report."
-              echo "First few lines of LVS report:"
-              head -20 "$LVS_REPORT"
-              echo "match=false" >> $GITHUB_OUTPUT
-            fi
+            echo "match=false" >> $GITHUB_OUTPUT
+            echo "❌ LVS FAILED or could not determine result"
           fi
 
       - name: POST metrics to ChipFoundry grader
@@ -268,6 +268,7 @@ jobs:
             runs/**/*.log
             runs/**/*.json
             runs/**/lvs.netgen.rpt
+            runs/**/lvs.netgen.json
           retention-days: 30
           if-no-files-found: warn
 
@@ -280,12 +281,16 @@ jobs:
           echo "=== Config file ==="
           cat config.json
           echo ""
-          echo "=== All LVS-related files ==="
-          find runs -name "*lvs*" -type f 2>/dev/null | sort
-          echo ""
-          echo "=== LVS report content ==="
-          if [ -f "runs/ci-lvs/70-netgen-lvs/reports/lvs.netgen.rpt" ]; then
-            cat runs/ci-lvs/70-netgen-lvs/reports/lvs.netgen.rpt
+          echo "=== LVS JSON report ==="
+          if [ -f "runs/ci-lvs/70-netgen-lvs/reports/lvs.netgen.json" ]; then
+            cat runs/ci-lvs/70-netgen-lvs/reports/lvs.netgen.json
           else
-            echo "LVS report not found"
+            echo "LVS JSON report not found"
+          fi
+          echo ""
+          echo "=== Flow log LVS section ==="
+          if [ -f "runs/ci-lvs/flow.log" ]; then
+            grep -i "lvs" runs/ci-lvs/flow.log | tail -20
+          else
+            echo "Flow log not found"
           fi
