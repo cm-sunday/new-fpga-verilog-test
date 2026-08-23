@@ -50,8 +50,10 @@ module tt_um_silicon_dreams (
   wire       priority_override    = ui_in[5];
   wire       axiom_enable         = ui_in[6];
   wire       fault_inject_enable  = uio_in[0];
-  // FIX: Removed unused global_test_mode
-  // wire       global_test_mode     = ui_in[7];  // DELETED
+  // FIX: ui_in[7] is intentionally unused - suppress warning
+  /* verilator lint_off UNUSED */
+  wire       global_test_mode     = ui_in[7];
+  /* verilator lint_on UNUSED */
 
   // ---------------------------------------------------------------------------
   // Elevator
@@ -108,8 +110,10 @@ module tt_um_silicon_dreams (
   // ---------------------------------------------------------------------------
   wire grant_elev;
   wire grant_axiom;
-  // FIX: Removed unused wire
-  // wire arbiter_queue_nonempty;  // DELETED
+  // FIX: Keep the wire for connection, but suppress unused warning
+  /* verilator lint_off UNUSED */
+  wire arbiter_queue_nonempty;
+  /* verilator lint_on UNUSED */
 
   arbiter u_arbiter (
     .clk             (clk),
@@ -120,7 +124,7 @@ module tt_um_silicon_dreams (
     .elev_req_payload(req_payload),
     .grant_elev      (grant_elev),
     .grant_axiom     (grant_axiom),
-    .queue_nonempty  ()  // Unused output
+    .queue_nonempty  (arbiter_queue_nonempty)  // FIX: Connect to a wire, not empty
   );
 
   // ---------------------------------------------------------------------------
