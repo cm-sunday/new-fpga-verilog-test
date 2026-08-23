@@ -37,7 +37,7 @@ jobs:
           # Create symlink for sky130A if it doesn't exist
           if [ -d "$PDK_ROOT/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A" ]; then
             ln -sf "$PDK_ROOT/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A" "$PDK_ROOT/sky130A"
-            echo "✅ sky130A symlink created"
+            echo " sky130A symlink created"
           fi
           
           echo "PDK installed at: $PDK_ROOT"
@@ -167,7 +167,7 @@ jobs:
           EOF
           
           chmod +x scripts/run-librelane.sh
-          echo "✅ scripts/run-librelane.sh updated"
+          echo " scripts/run-librelane.sh updated"
 
       - name: Run LibreLane through signoff
         env:
@@ -280,7 +280,7 @@ jobs:
               if wns_val < 0 or whs_val < 0:
                   print(f"Final tag requires WNS>=0 and WHS>=0; got {wns_val} / {whs_val}", file=sys.stderr)
                   sys.exit(1)
-              print(f"✅ Timing clean: WNS={wns_val}, WHS={whs_val}")
+              print(f" Timing clean: WNS={wns_val}, WHS={whs_val}")
           except ValueError as e:
               print(f"Could not parse timing slacks: {e}", file=sys.stderr)
               sys.exit(1)
