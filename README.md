@@ -1,6 +1,6 @@
-# Silicon Dreams · Module 1 · The Elevator Problem
-
 [![GDS](../../workflows/gds/badge.svg)](../../actions/workflows/gds.yml) [![Docs](../../workflows/docs/badge.svg)](../../actions/workflows/docs.yml) [![Test](../../workflows/test/badge.svg)](../../actions/workflows/test.yml) [![FPGA](../../workflows/fpga/badge.svg)](../../actions/workflows/fpga.yml)
+
+# Silicon Dreams · Module 1 · The Elevator Problem
 
 This repository is the **Week 1 starter project** for the Silicon Dreams course (`CM-HW-101`), a three-week co-delivered programme from **ChipMango** and **ChipFoundry** that takes learners from RTL to real silicon.
 
@@ -39,7 +39,7 @@ cd test && make
 # Expected: a green "PASS" line and a tb.vcd waveform file.
 ```
 
-If smoke-test passes, you are ready to open **TB-M1-01 · Welcome to Mango Tower** (see the course materials distributed by ChipMango).
+If the smoke-test passes, you are ready to open **TB-M1-01 · Welcome to Mango Tower** (see the course materials distributed by ChipMango).
 
 ## What is in this repository
 
@@ -55,7 +55,9 @@ If smoke-test passes, you are ready to open **TB-M1-01 · Welcome to Mango Tower
 
 ## Deliberate bugs (course policy)
 
-This starter contains **four deliberate bugs** that are central to the course story. They are not mistakes; they are puzzles. They unlock narratively in Module 2 (the parallel-lift escape room) and are documented in the instructor notes. **Learners should not fix them in Module 1.** The study guides ask learners to find and document them, then leave them in place until Week 2.
+This starter contains **four deliberate bugs** that are central to the course story. They are not mistakes; they are puzzles. They unlock narratively in Module 2 (the parallel-lift escape room) and are documented in the instructor notes.
+
+**Learners should not fix them in Module 1.** The study guides ask learners to find and document them, then leave them in place until Week 2.
 
 If you are a ChipFoundry engineer reviewing this repo and want the full list, see `notes/known-bugs.md` (hidden from learners by course convention).
 
@@ -87,6 +89,95 @@ By completing this module, learners will be able to:
 - Drive one-hot inputs, decode them, and produce 7-segment display output.
 - Write a cocotb testbench, run iverilog simulation, and interpret a gtkwave waveform.
 - Submit a design to ChipFoundry and resolve first-pass DRC issues.
+
+## How to use this module
+
+1. **Set up your environment first.** You need a GitHub account, Python 3, cocotb, and icarus-verilog — all free, no license servers required.
+2. **Fork the starter repo** using "Use this template" and clone it locally. This becomes your Week 1 workspace — every chapter references files inside it.
+3. **Run the smoke test before anything else** to confirm your environment works.
+4. **Read the repo layout** above so you know where the FSM, testbench, and metadata files live.
+5. **Work through TB-M1-01 onward**, using the study guides as your actual practice ground.
+6. **Find (but don't fix) the four deliberate bugs**, and log them in `notes/` as the study guides direct — they matter in Module 2.
+7. **Finish the required deliverables** listed above, then submit to the shuttle via the ChipFoundry portal following `TB-M1-08` / `SG-M1-08`.
+
+## Adding the repo
+
+**Starter repo** (your Week 1 workspace) — use **Use this template** on GitHub to create your own copy under your own username, then clone it locally:
+
+```bash
+git clone https://github.com/<your-username>/<your-fork-name>.git
+cd <your-fork-name>
+```
+
+**Solution repo** (optional, to cross-check your Verilog against a reference implementation):
+
+```
+https://github.com/chipfoundry/new-fpga-verilog-test
+https://github.com/chipmango-design/new-fpga-verilog-test
+```
+
+Fork it on GitHub, then clone your fork locally to a path with no spaces in it:
+
+```bash
+git clone https://github.com/<your-username>/<solution-fork-name>.git
+cd <solution-fork-name>
+```
+
+Switch between branches in the terminal to compare against different solution stages:
+
+```bash
+git branch -a
+git checkout <branch-name>
+```
+
+## Installing the toolchain
+
+```bash
+# Ubuntu / Debian
+sudo apt-get update
+sudo apt-get install -y git python3 python3-pip python3-venv iverilog gtkwave make build-essential
+
+# macOS (with Homebrew)
+brew install git python icarus-verilog gtkwave make
+
+# Create a virtual environment (recommended)
+python3 -m venv ~/.venvs/silicondreams
+source ~/.venvs/silicondreams/bin/activate
+
+# Inside the virtualenv, install cocotb and other test dependencies
+pip install -r test/requirements.txt
+```
+
+Verify the install:
+
+```bash
+iverilog --version
+gtkwave --version
+python3 -c 'import cocotb'
+```
+
+## Running the test
+
+From the root of your cloned repo:
+
+```bash
+cd test
+make
+```
+
+This compiles the starter elevator design with Icarus Verilog, runs the cocotb testbench, resets the chip, applies zero inputs, and asserts that the 7-segment output encodes the digit `0`. A successful run ends with a green **PASS** line and produces a `tb.vcd` waveform file.
+
+Inspect the waveform:
+
+```bash
+gtkwave tb.vcd &
+```
+
+- Confirm the window opens and the `clk` signal is toggling.
+- Add `ui_in`, `rst_n`, and `uo_out` to the waveform pane.
+- Confirm `uo_out = 0xBF` at the end of the run.
+
+If `make` doesn't report `PASS`, don't move on — the study guide for this chapter walks through every common failure, and every later chapter assumes this smoke test passes.
 
 ## Resources
 
