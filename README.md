@@ -14,9 +14,9 @@ You are about to design a finite-state-machine elevator controller, simulate it,
 | **Module** | M1 — The Elevator Problem |
 | **Duration** | Week 1 (≈ 6–10 practical hours) |
 | **Language** | Verilog HDL |
-| **Platform** | ChipFoundry chipIgnite |
-| **Partners** | ChipMango × ChipFoundry · MoU 2026 |
-| **Course home** | [chipmango.io/silicon-dreams](https://chipmango.io/silicon-dreams) |
+| **Platform** | ChipFoundry ChipMango |
+| **Partners** | ChipMango × ChipFoundry · 2026 |
+| **Course home** | [chipmango.com/silicon-dreams](https://chipmango.com/silicon-dreams) |
 
 ## Quick start
 
@@ -75,7 +75,7 @@ You will then submit the latest commit to the ChipIgnite shuttle from the ChipFo
 
 ## Relationship to `chipdiscover-verilog-template`
 
-This repo is the Module 1 starter. For Module 3 you will also fork [`chipdiscover-verilog-template`](https://github.com/chipmango/silicon-dreams-m1-starter-repo) — a blank-slate template — because your final boss submission is a multi-module design that integrates the elevator (from this repo) with a new arbiter, a clock-gating cell, and AXIOM's black-box module.
+This repo is the Module 1 starter. For Module 3 you will also fork [`silicon-dreams-m1-starter-template`](https://github.com/chipmango/silicon-dreams-m1-starter-repo) — a blank-slate template — because your final boss submission is a multi-module design that integrates the elevator (from this repo) with a new arbiter, a clock-gating cell, and AXIOM's black-box module.
 
 ## Learning outcomes (Module 1)
 
@@ -102,7 +102,13 @@ By completing this module, learners will be able to:
 
 ## Adding the repo
 
-**Starter repo** (your Week 1 workspace) — use **Use this template** on GitHub to create your own copy under your own username, then clone it locally:
+**Starter repo** (your Week 1 workspace):
+
+```
+https://github.com/chipmango-design/silicon-dreams-m1-starter-repo.git
+```
+
+Click **Use this template** on GitHub to create your own copy under your own username, then clone it locally:
 
 ```bash
 git clone https://github.com/<your-username>/<your-fork-name>.git
@@ -112,8 +118,8 @@ cd <your-fork-name>
 **Solution repo** (optional, to cross-check your Verilog against a reference implementation):
 
 ```
-https://github.com/chipfoundry/new-fpga-verilog-test
-https://github.com/chipmango-design/new-fpga-verilog-test
+https://github.com/chipfoundry/silicon_dreams
+https://github.com/chipmango-design/silicon_dreams
 ```
 
 Fork it on GitHub, then clone your fork locally to a path with no spaces in it:
