@@ -65,6 +65,23 @@ make fault
 
 If `make smoke` passes and `make fault` prints four red `FAIL` lines (one per floor), you are ready to open **TB-M2-01 · Welcome to the Parallel Shaft** and begin the escape.
 
+Expected `make fault` output at this stage (abbreviated):
+
+```
+== FLOOR B2 =============================================
+  test_floor_b2_reset ........................ FAIL (expected)
+== FLOOR 5 ===============================================
+  test_floor_5_seu ........................... FAIL (expected)
+== FLOOR 1 ===============================================
+  test_floor_1_input ......................... FAIL (expected)
+== SILENT FLOOR ==========================================
+  test_silent_floor_area ..................... SKIP (run make yosys-report)
+== SUMMARY ================================================
+  3 fail, 1 skip, 0 pass — 4 floors locked
+```
+
+All three failures are expected — the starter RTL still contains the bugs each test is meant to catch. A pass at this stage means the test is a placebo; a crash or import error means your environment is misconfigured (see **Troubleshooting** below).
+
 ## What is in this repository
 
 | Path | What it is |
@@ -116,6 +133,44 @@ This starter repo has **no RTL bugs of its own** — the bugs live in the Module
 
 If you are a ChipFoundry engineer reviewing this repo, see `notes/known-solutions.md` for the private per-floor solutions (hidden from learners by course convention).
 
+## Solution repository (optional cross-check)
+
+Just like Module 1, a solution repository is available so you can cross-check your work, understand the intended behaviour of the fault-injection tests, and verify a fixed-RTL reference implementation.
+
+Access the Module 2 solution repository:
+[github.com/chipfoundry/silicon_dreams](https://github.com/chipfoundry/silicon_dreams) (mirrored at [github.com/chipmango-design/silicon_dreams](https://github.com/chipmango-design/silicon_dreams))
+
+```bash
+# 1. Fork the solution repo under your own GitHub username
+# 2. Clone your fork locally
+git clone https://github.com/<your-username>/silicon_dreams.git
+cd silicon_dreams
+
+# 3. Switch to the Module 2 reference branch
+git checkout m2-escape
+
+# 4. Run the tests to see the expected PASS results
+cd test/fault_injection
+make fault   # expect: all four floors PASS
+```
+
+Compare individual test files against your own work, e.g.:
+
+```bash
+diff test/fault_injection/test_floor_b2_reset.py \
+     /path/to/mod2-parallel-shaft/test/fault_injection/test_floor_b2_reset.py
+```
+
+## Troubleshooting
+
+| Symptom | Likely cause / fix |
+|---|---|
+| `make: *** No rule to make target 'fault'` | You're running `make` from `test/` instead of `test/fault_injection/`, or the template clone didn't complete — re-clone the repo. |
+| `ImportError: harness` | PYTHONPATH issue. The harness expects to be run from `test/fault_injection/` with the repo root on the path — use `make`, not a direct `pytest` invocation. |
+| All 4 tests skip | `conftest.py` could not import the DUT. Check that the iverilog build produced `build/Vtt_um_example` (or equivalent) — usually means `src/elevator.v` wasn't copied in from your Module 1 fork. |
+| `make smoke` fails right after copying `elevator.v` | Your Module 1 RTL doesn't match the expected pinout contract, or the copy step (`cp ../mod1-elevator/src/elevator.v src/elevator.v`) was run from the wrong directory. Re-check the sibling-clone layout in **Quick start**. |
+| CI passes locally but not on GitHub | The `.github/workflows/fault-matrix.yml` file wasn't included when you created the repo from the template, or was accidentally excluded via `.gitignore` — re-copy it from this starter repo. |
+
 ## What you will submit
 
 By the end of Module 2 you will push the following to your fork:
@@ -153,7 +208,7 @@ By completing this module, learners will be able to:
 ## Resources
 
 - ChipFoundry platform docs — [chipfoundry.io/docs](https://chipfoundry.io/docs)
-- Silicon Dreams course home — [chipmango.io/silicon-dreams](https://chipmango.io/silicon-dreams)
+- Silicon Dreams course home — [chipmango.com/silicon-dreams](https://chipmango.com/silicon-dreams)
 - cocotb documentation — [docs.cocotb.org](https://docs.cocotb.org)
 - Yosys manual — [yosyshq.net/yosys/documentation.html](https://yosyshq.net/yosys/documentation.html)
 - Course Discord — link distributed with enrolment.
